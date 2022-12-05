@@ -12,6 +12,8 @@ column_height = gray_column_0_image.get_height()
 block_size = yellow_sand_0_image.get_width()
 column_top_height = gray_column_top_0_image.get_height()
 
+COLUMNS = 'columns'
+DESERT = 'DESERT'
 
 
 class YellowDesert(Location):
@@ -28,7 +30,9 @@ class YellowDesert(Location):
         self.first = True
         self.both_directions = choice([True, False])
         self.total_length = 20
-        self.y_changing_frequency = 13
+        self.y_changing_frequency_desert = 13
+        self.y_changing_frequency_columns = 1
+        self.first_location = DESERT
         if self.both_directions:
             self.direction = 1
         else:
@@ -36,24 +40,7 @@ class YellowDesert(Location):
 
     def generate_desert(self, length=30):
         if not self.both_directions and self.first:
-            column = Tile(self.x, self.y, gray_column_0_image)
-            self.objects_with_collision.append(column)
-            current_y = column.rect.top - column.rect.height
-
-            for i in range(2):
-                column = Tile(self.x, current_y, gray_column_0_image)
-                self.objects_with_collision.append(column)
-                current_y = column.rect.top - column.rect.height
-
-            current_y = column.rect.top - column_top_height
-            column_top = Tile(self.x, current_y, eval(f'gray_column_top_{choice([0, 1])}_image'))
-            self.objects_with_collision.append(column_top)
-
-            current_y = self.y + column.rect.height
-            for i in range(2):
-                column = Tile(self.x, current_y, gray_column_0_image)
-                self.objects_with_collision.append(column)
-                current_y = column.rect.top - column.rect.height
+            column = self.generate_column()
 
             if self.direction == 1:
                 self.x = column.rect.right + 1
@@ -68,10 +55,10 @@ class YellowDesert(Location):
         if self.direction == -1:
             sand_variation = 3
 
-        y_changed = self.y_changing_frequency
+        y_changed = self.y_changing_frequency_desert
         for i in range(length):
             if y_changed == 0:
-                y_changed = self.y_changing_frequency
+                y_changed = self.y_changing_frequency_desert
                 k = randint(0, 1)
                 if k == 0 and not self.y - column_height < self.top:
                     self.y -= column_height
@@ -134,13 +121,13 @@ class YellowDesert(Location):
 
             if a == 0 and triple_platform_generated_count < 2:
                 triple_platform_generated_count = 5
-                platform = Tile(self.x, self.y - block_size * choice([4, 5]),
+                platform = Tile(self.x, self.y - block_size * choice([3, 4]),
                                 gray_single_flying_platform_image)
                 self.objects_with_collision.append(platform)
 
             elif a == 1 and triple_platform_generated_count < 0:
                 triple_platform_generated_count = 5
-                platform = Tile(self.x, self.y - block_size * choice([4, 5]),
+                platform = Tile(self.x, self.y - block_size * choice([3, 4]),
                                 eval(f'gray_triple_flying_platform_{choice([0, 1])}_image'))
                 self.objects_with_collision.append(platform)
 
@@ -161,42 +148,55 @@ class YellowDesert(Location):
 
             y_changed -= 1
 
-
-    def generate_columns(self, length=5):
-
-
-        if not self.first and self.direction == -1:
-            self.x -= column_width
+    def generate_column(self):
         column = Tile(self.x, self.y, gray_column_0_image)
         self.objects_with_collision.append(column)
-
+        top_column = column
         column_top_height = gray_column_top_0_image.get_height()
         column_top = Tile(self.x, self.y - column_top_height, eval(f'gray_column_top_{choice([0, 1])}_image'))
         self.objects_with_collision.append(column_top)
 
-        for i in range(3):
-            current_y = column.rect.bottom - 1
+        current_y = column.rect.bottom - 1
+        for i in range(50):
             column = Tile(self.x, current_y, gray_column_0_image)
             self.objects_with_collision.append(column)
+            current_y = column.rect.bottom - 1
+            if column.rect.bottom >= self.bottom:
+                break
+
+        return top_column
+
+    def generate_columns(self, length=30):
+        if not self.first and self.direction == -1:
+            self.x -= column_width
+
+
+        column = self.generate_column()
 
         if self.direction == -1:
             self.x = column.rect.left - column_width - 1
         elif self.direction == 1:
             self.x = column.rect.right + 1
 
+        y_changed = self.y_changing_frequency_columns
+
         for i in range(length):
+
+            if y_changed == 0:
+                k = randint(0, 1)
+                if not self.y - column_height < self.top and k == 0:
+                    self.y -= column_height
+                    y_changed = self.y_changing_frequency_columns
+                elif not self.y + column_height > self.bottom and k == 1:
+                    self.y += column_height
+                    y_changed = self.y_changing_frequency_columns
+
             if self.direction == -1:
                 self.x = column.rect.left - column_width - 1 - choice([2, 3]) * column_width
             elif self.direction == 1:
                 self.x = column.rect.right + 1 + choice([2, 3]) * column_width
-            column = Tile(self.x, self.y, gray_column_0_image)
-            self.objects_with_collision.append(column)
-            for i in range(3):
-                current_y = column.rect.bottom - 1
-                column = Tile(self.x, current_y, gray_column_0_image)
-                self.objects_with_collision.append(column)
-            column_top = Tile(self.x, self.y - column_top_height, eval(f'gray_column_top_{choice([0, 1])}_image'))
-            self.objects_with_collision.append(column_top)
+            column = self.generate_column()
+            y_changed -= 1
 
         if self.direction == -1:
             self.x = column.rect.left
@@ -206,29 +206,41 @@ class YellowDesert(Location):
     def generate(self):
         if not self.both_directions:
             for i in range(self.total_length):
-                if i % 2 == 0:
+                c = randint(0, 1)
+                if c == 0:
                     self.generate_desert()
                     self.first = False
                 else:
                     self.generate_columns()
                     self.first = False
         else:
+
             for i in range(self.total_length // 2):
-                if i % 2 == 0:
+                c = randint(0, 1)
+                if c == 0:
                     self.generate_desert()
+                    if self.first:
+                        self.first_location = DESERT
                     self.first = False
                 else:
                     self.generate_columns()
+                    if self.first:
+                        self.first_location = COLUMNS
                     self.first = False
             self.direction = -1
             self.x = self.start_x
             self.y = self.start_y
             self.first = True
             for i in range(self.total_length // 2):
-                if i % 2 == 0:
+                c = randint(0, 1)
+                if c == 0:
+                    if self.first_location == COLUMNS:
+                        self.x -= block_size
                     self.generate_desert()
                     self.first = False
                 else:
+                    if self.first_location == COLUMNS:
+                        self.x -= column_width * randint(1, 2)
                     self.generate_columns()
                     self.first = False
 
