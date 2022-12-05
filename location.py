@@ -1,6 +1,7 @@
 from tiles import *
 from random import *
-from settings import *
+from backgrounds import *
+
 
 
 class Location:
@@ -12,7 +13,7 @@ column_height = gray_column_0_image.get_height()
 block_size = yellow_sand_0_image.get_width()
 column_top_height = gray_column_top_0_image.get_height()
 
-COLUMNS = 'columns'
+COLUMNS = 'COLUMNS'
 DESERT = 'DESERT'
 
 
@@ -33,12 +34,16 @@ class YellowDesert(Location):
         self.y_changing_frequency_desert = 13
         self.y_changing_frequency_columns = 1
         self.first_location = DESERT
+        self.generate_background()
         if self.both_directions:
             self.direction = 1
         else:
             self.direction = choice([-1, 1])
 
-    def generate_desert(self, length=30):
+    def generate_background(self):
+        self.background = DesertBackground()
+
+    def generate_desert(self, length=50):
         if not self.both_directions and self.first:
             column = self.generate_column()
 
@@ -166,7 +171,7 @@ class YellowDesert(Location):
 
         return top_column
 
-    def generate_columns(self, length=30):
+    def generate_columns(self, length=5):
         if not self.first and self.direction == -1:
             self.x -= column_width
 

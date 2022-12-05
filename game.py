@@ -58,7 +58,8 @@ while main_game_loop:
     if not keys[pygame.K_a] and not keys[pygame.K_d]:
         player.is_moving = False
 
-    SCREEN.fill('PINK')
+    SCREEN.fill((247, 101, 101))
+    location.background.draw(SCREEN)
 
     player.update(objects_with_collision=objects_with_collision, scroll=scroll)
 
