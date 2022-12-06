@@ -16,9 +16,10 @@ objects_with_collision, front, behind = location.generate()
 all_objects = []
 
 all_objects.extend(behind)
+all_objects.extend(objects_with_collision)
 all_objects.append(player)
 all_objects.extend(front)
-all_objects.extend(objects_with_collision)
+
 
 
 main_game_loop = True

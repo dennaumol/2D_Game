@@ -18,7 +18,7 @@ class Entity(pygame.sprite.Sprite):
 
     def draw(self, surface, scroll):
         image_rect = self.image.get_rect(centerx=self.rect.centerx - scroll[0], bottom=self.rect.bottom - scroll[1])
-        # pygame.draw.rect(surface, "red", (self.rect.x - scroll[0], self.rect.y - scroll[1], self.rect.width, self.rect.height))
+        #pygame.draw.rect(surface, "red", (self.rect.x - scroll[0], self.rect.y - scroll[1], self.rect.width, self.rect.height))
         surface.blit(self.image, image_rect)
 
 
@@ -27,6 +27,7 @@ class Player(Entity):
         super(Player, self).__init__()
         self.image = player_idle_90_ah
         self.rect = self.image.get_bounding_rect()
+        self.rect.width //= 4
         self.rect.center = (x, y)
         self.speed = 11
         self.dash = False
