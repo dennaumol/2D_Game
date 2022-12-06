@@ -67,7 +67,6 @@ class YellowDesert(Location):
                 k = randint(0, 1)
                 if k == 0 and not self.y - column_height < self.top:
                     self.y -= column_height
-                    current_y = self.y
                     if self.direction == -1:
                         self.x = self.x - column_width + block_size
                     column = self.generate_column()
