@@ -35,6 +35,7 @@ class YellowDesert(Location):
         self.y_changing_frequency_columns = 1
         self.first_location = DESERT
         self.generate_background()
+        self.cur_sand_variation = 0
         if self.both_directions:
             self.direction = 1
         else:
@@ -43,7 +44,35 @@ class YellowDesert(Location):
     def generate_background(self):
         self.background = DesertBackground()
 
+    def generate_sand(self):
+        sand_block = Tile(self.x, self.y, eval(f'yellow_sand_{self.cur_sand_variation}_image'))
+        self.objects_with_collision.append(sand_block)
+        top_sand = sand_block
+
+        if self.cur_sand_variation != 0:
+            self.front.append(Tile(self.x, self.y - block_size,
+                                   eval(f'yellow_sand_decoration_{self.cur_sand_variation}_image')))
+        if self.direction == 1:
+            self.cur_sand_variation += 1
+
+        else:
+            self.cur_sand_variation -= 1
+
+        if self.cur_sand_variation == 4 and self.direction == 1:
+            self.cur_sand_variation = 0
+        elif self.cur_sand_variation == 0 and self.direction == -1:
+            self.cur_sand_variation = 3
+        for j in range(50):
+            self.behind.append(Tile(self.x, self.y + block_size * (j + 1), sand_block_image))
+            if self.y + block_size * (j + 1) > self.bottom:
+                break
+
+        return top_sand
+
     def generate_desert(self, length=50):
+        self.cur_sand_variation = 0
+        if self.direction == -1:
+            self.cur_sand_variation = 3
         if not self.both_directions and self.first:
             column = self.generate_column()
 
@@ -55,10 +84,9 @@ class YellowDesert(Location):
         if not self.first and self.direction == -1:
             self.x += self.direction * block_size
 
-        sand_variation = 0
+
         triple_platform_generated_count = 0
-        if self.direction == -1:
-            sand_variation = 3
+
 
         y_changed = self.y_changing_frequency_desert
         for i in range(length):
@@ -88,24 +116,6 @@ class YellowDesert(Location):
                     else:
                         self.x = column.rect.left - block_size
 
-
-            sand_block = Tile(self.x, self.y, eval(f'yellow_sand_{sand_variation}_image'))
-            self.objects_with_collision.append(sand_block)
-
-            if sand_variation != 0:
-                self.front.append(Tile(self.x, self.y - block_size,
-                                  eval(f'yellow_sand_decoration_{sand_variation}_image')))
-            if self.direction == 1:
-                sand_variation += 1
-
-            else:
-                sand_variation -= 1
-
-            if sand_variation == 4 and self.direction == 1:
-                sand_variation = 0
-            elif sand_variation == 0 and self.direction == -1:
-                sand_variation = 3
-
             a = choice([0, 1, 2, 3, 4, 5, 6, 7, 8])
 
             if a == 0 and triple_platform_generated_count < 2:
@@ -122,10 +132,7 @@ class YellowDesert(Location):
 
             triple_platform_generated_count -= 1
 
-            for j in range(50):
-                self.behind.append(Tile(self.x, self.y + block_size * (j + 1), sand_block_image))
-                if self.y + block_size * (j + 1) > self.bottom:
-                    break
+            sand_block = self.generate_sand()
 
             if self.direction == -1:
                 if i != length - 1:

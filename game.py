@@ -7,6 +7,7 @@ pygame.init()
 
 true_scroll = [0, 0]
 
+
 player = Player(0, -500)
 clock = pygame.time.Clock()
 
