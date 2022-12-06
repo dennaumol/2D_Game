@@ -27,7 +27,7 @@ class Player(Entity):
         super(Player, self).__init__()
         self.image = player_idle_90_ah
         self.rect = self.image.get_bounding_rect()
-        self.rect.width //= 4
+        self.rect.width //= 3
         self.rect.center = (x, y)
         self.speed = 11
         self.dash = False
@@ -109,15 +109,21 @@ class Player(Entity):
             # check for collision in the y direction
             if object.rect.colliderect(self.rect.x, self.rect.y + dy, self.rect.width, self.rect.height):
                 # check if below the ground, i.e. jumping
-                if self.vel_y < 0:
+                if self.vel_y < 0 and not object.platform:
                     self.vel_y = 0
                     dy = object.rect.bottom - self.rect.top
                 # check if above the ground, i.e. falling
-                elif self.vel_y >= 0:
+                elif self.vel_y >= 0 and not object.platform:
                     self.vel_y = 0
                     self.in_air = False
                     self.before_fall_x, self.before_fall_y = self.rect.center
                     dy = object.rect.top - self.rect.bottom
+                elif self.vel_y >= 0 and object.platform and not (self.rect.bottom > object.rect.top):
+                    self.vel_y = 0
+                    self.in_air = False
+                    self.before_fall_x, self.before_fall_y = self.rect.center
+                    dy = object.rect.top - self.rect.bottom
+
 
         self.rect.x += dx
         self.rect.y += dy

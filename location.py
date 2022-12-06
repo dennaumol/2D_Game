@@ -121,13 +121,13 @@ class YellowDesert(Location):
             if a == 0 and triple_platform_generated_count < 2:
                 triple_platform_generated_count = 5
                 platform = Tile(self.x, self.y - block_size * choice([3, 4]),
-                                gray_single_flying_platform_image)
+                                gray_single_flying_platform_image, platform=True)
                 self.objects_with_collision.append(platform)
 
             elif a == 1 and triple_platform_generated_count < 0:
                 triple_platform_generated_count = 5
                 platform = Tile(self.x, self.y - block_size * choice([3, 4]),
-                                eval(f'gray_triple_flying_platform_{choice([0, 1])}_image'))
+                                eval(f'gray_triple_flying_platform_{choice([0, 1])}_image'), platform=True)
                 self.objects_with_collision.append(platform)
 
             triple_platform_generated_count -= 1

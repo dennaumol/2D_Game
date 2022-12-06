@@ -58,7 +58,6 @@ while main_game_loop:
         player.moving_right = False
     if not keys[pygame.K_a] and not keys[pygame.K_d]:
         player.is_moving = False
-
     SCREEN.fill((247, 101, 101))
     location.background.draw(SCREEN)
 
