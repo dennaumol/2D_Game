@@ -6,7 +6,6 @@ from location import *
 pygame.init()
 
 true_scroll = [0, 0]
-d
 
 player = Player(0, -500)
 clock = pygame.time.Clock()
