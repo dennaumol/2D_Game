@@ -6,7 +6,7 @@ from location import *
 pygame.init()
 
 true_scroll = [0, 0]
-
+d
 
 player = Player(0, -500)
 clock = pygame.time.Clock()
@@ -61,7 +61,7 @@ while main_game_loop:
     SCREEN.fill((247, 101, 101))
     location.background.draw(SCREEN)
 
-    player.update(objects_with_collision=objects_with_collision, scroll=scroll)
+    player.update(objects_with_collision=objects_with_collision, scroll=scroll, y_dead_bottom=location.bottom)
 
     for sprite in all_objects:
         sprite.draw(SCREEN, scroll)

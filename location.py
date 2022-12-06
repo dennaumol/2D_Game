@@ -70,14 +70,7 @@ class YellowDesert(Location):
                     current_y = self.y
                     if self.direction == -1:
                         self.x = self.x - column_width + block_size
-                    self.objects_with_collision.append(Tile(self.x, self.y - column_top_height,
-                                                            eval(f'gray_column_top_{choice([0, 1])}_image')))
-                    for i in range(50):
-                        column = Tile(self.x, current_y, gray_column_0_image)
-                        self.objects_with_collision.append(column)
-                        if column.rect.bottom >= self.bottom:
-                            break
-                        current_y = column.rect.bottom
+                    column = self.generate_column()
 
                     if self.direction == 1:
                         self.x = column.rect.right
@@ -85,17 +78,9 @@ class YellowDesert(Location):
                         self.x = column.rect.left - block_size
 
                 elif k == 1 and not self.y + column_height > 0:
-                    current_y = self.y
                     if self.direction == -1:
                         self.x = self.x - column_width + block_size
-                    self.objects_with_collision.append(Tile(self.x, self.y - column_top_height,
-                                                            eval(f'gray_column_top_{choice([0, 1])}_image')))
-                    for i in range(50):
-                        column = Tile(self.x, current_y, gray_column_0_image)
-                        self.objects_with_collision.append(column)
-                        if column.rect.bottom >= self.bottom:
-                            break
-                        current_y = column.rect.bottom
+                    column = self.generate_column()
 
                     self.y += column_height
 

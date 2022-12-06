@@ -620,6 +620,6 @@ desert_background_images = []
 for i in range(3):
     image = pygame.image.load(f'data/images/level_objects/backgrounds/desert/layer_{i}.png')
     image = pygame.transform.scale(image,
-                                   (int(image.get_width()) * 2, int(image.get_height()) * 2)).convert_alpha(SCREEN)
+                                   (int(image.get_width()) * 3.2, int(image.get_height()) * 3.2)).convert_alpha(SCREEN)
     desert_background_images.append(image)
 

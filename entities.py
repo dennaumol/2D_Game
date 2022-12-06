@@ -40,6 +40,7 @@ class Player(Entity):
         self.dash_cooldown_sec = 2
         self.extra_jumps = 1
         self.extra_cur_jumps = 1
+        self.before_fall_x, self.before_fall_y = self.rect.center
 
     def update(self, *args, **kwargs):
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -55,6 +56,10 @@ class Player(Entity):
 
         objects_with_collision = kwargs['objects_with_collision']
         scroll = kwargs['scroll']
+        y_dead_bottom = kwargs['y_dead_bottom']
+
+        if self.rect.bottom > y_dead_bottom:
+            self.rect.center = self.before_fall_x, self.before_fall_y
 
         if not self.in_air:
             self.extra_cur_jumps = self.extra_jumps
@@ -110,6 +115,7 @@ class Player(Entity):
                 elif self.vel_y >= 0:
                     self.vel_y = 0
                     self.in_air = False
+                    self.before_fall_x, self.before_fall_y = self.rect.center
                     dy = object.rect.top - self.rect.bottom
 
         self.rect.x += dx
@@ -386,8 +392,8 @@ class Player(Entity):
             self.image = pygame.transform.flip(self.image, True, False)
 
 
-        self.animation_tick += 1
-        if self.animation_tick == 61:
+        self.animation_tick += 2
+        if self.animation_tick >= 61:
             self.animation_tick = 0
 
 
