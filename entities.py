@@ -15,6 +15,8 @@ class Entity(pygame.sprite.Sprite):
         self.is_moving = False
         self.animation_tick = 0
         self.ang = 90
+        self.platform = False
+        self.type = ENTITY
 
     def draw(self, surface, scroll):
         image_rect = self.image.get_rect(centerx=self.rect.centerx - scroll[0], bottom=self.rect.bottom - scroll[1])
@@ -42,6 +44,7 @@ class Player(Entity):
         self.extra_jumps = 1
         self.extra_cur_jumps = 1
         self.before_fall_x, self.before_fall_y = self.rect.center
+
 
     def update(self, *args, **kwargs):
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -103,8 +106,12 @@ class Player(Entity):
         dy += self.vel_y
 
         for object in objects_with_collision:
+            if abs(abs(self.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= SCREEN_WIDTH:
+                continue
+            if object.type == ENTITY:
+                continue
             # check collision in the x direction
-            if object.rect.colliderect(self.rect.x + dx, self.rect.y, self.rect.width, self.rect.height):
+            if object.rect.colliderect(self.rect.x + dx, self.rect.y, self.rect.width, self.rect.height) and not object.platform:
                 dx = 0
             # check for collision in the y direction
             if object.rect.colliderect(self.rect.x, self.rect.y + dy, self.rect.width, self.rect.height):
@@ -127,7 +134,8 @@ class Player(Entity):
 
         self.rect.x += dx
         self.rect.y += dy
-
+        if dx == 0:
+            self.is_moving = False
 
         start_pos = (self.rect.centerx + self.rect.width // 2,
                      self.rect.top + self.rect.height // 2)
@@ -137,7 +145,6 @@ class Player(Entity):
         self.image = player_idle_90_ah
 
         if (self.right and mouse_x + scroll[0] >= self.rect.centerx) or (not self.right and mouse_x + scroll[0] < self.rect.centerx):
-
 
             if self.is_moving:
                 self.image = player_run_90_ah[self.animation_tick // 20]
@@ -394,23 +401,133 @@ class Player(Entity):
                 elif 175 <= self.ang <= 180:
                     self.image = player_idle_175_bk
 
-
         if not self.right:
             self.image = pygame.transform.flip(self.image, True, False)
-
 
         self.animation_tick += 2
         if self.animation_tick >= 61:
             self.animation_tick = 0
 
 
-
-class SmallMonster(Entity):
+class SmallMonster(Player):
     def __init__(self, x, y):
-        super(SmallMonster, self).__init__()
+        super(SmallMonster, self).__init__(x, y)
         self.image = small_monster_idle_image
-        self.rect = self.image.get_rect()
+        self.rect = self.image.get_bounding_rect()
         self.rect.center = (x, y)
+        self.speed = 4.5
+        self.explode = False
+
+    def update(self, *args, **kwargs):
+        dx = 0
+        dy = 0
+
+        objects_with_collision = kwargs['objects_with_collision']
+        scroll = kwargs['scroll']
+        y_dead_bottom = kwargs['y_dead_bottom']
+        player = kwargs['player']
+
+        if abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) >= SCREEN_WIDTH:
+            return
+
+        if not self.explode:
+            if self.speed <= abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) <= 700 and \
+                    abs(abs(player.rect.centery + scroll[1]) - abs(self.rect.centery + scroll[1])) <= 170:
+                if player.rect.centerx > self.rect.centerx:
+                    dx = self.speed
+                    self.right = False
+
+                else:
+                    dx = -self.speed
+                    self.right = True
+                if 50 <= abs(abs(player.rect.centery + scroll[1]) - abs(self.rect.centery + scroll[1])) <= 300:
+                    if player.rect.centery < self.rect.centery:
+                        self.jump = True
+                    else:
+                        self.jump = False
+            if abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) <= 10:
+                self.explode = True
+                self.explode_count_down = FPS * 3
+
+            if self.explode_count_down < 0:
+                pass
+
+            if self.jump and not self.in_air:
+                self.vel_y = -20
+                self.jump = False
+                self.in_air = True
+
+        if self.moving_left:
+            dx = -self.speed
+
+        if self.moving_right:
+            dx = self.speed
+
+        if self.dash and self.dash_cur_count > 0:
+            if self.moving_right:
+                dx = self.dash_speed
+            elif self.moving_left:
+                dx = -self.dash_speed
+
+        if self.in_air:
+            self.jump = False
+
+        self.vel_y += GRAVITY
+        dy += self.vel_y
+
+        for object in objects_with_collision:
+            # check collision in the x direction
+            if abs(abs(self.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= SCREEN_WIDTH:
+                continue
+            if object == self:
+                continue
+            if object == player:
+                continue
+            if object.rect.colliderect(self.rect.x + dx, self.rect.y, self.rect.width,
+                                       self.rect.height) and not object.platform:
+                dx = 0
+            # check for collision in the y direction
+            if object.rect.colliderect(self.rect.x, self.rect.y + dy, self.rect.width, self.rect.height):
+                # check if below the ground, i.e. jumping
+                if self.vel_y < 0 and not object.platform:
+                    self.vel_y = 0
+                    dy = object.rect.bottom - self.rect.top
+                # check if above the ground, i.e. falling
+                elif self.vel_y >= 0 and not object.platform:
+                    self.vel_y = 0
+                    self.in_air = False
+                    self.before_fall_x, self.before_fall_y = self.rect.center
+                    dy = object.rect.top - self.rect.bottom
+                elif self.vel_y >= 0 and object.platform and not (self.rect.bottom > object.rect.top):
+                    self.vel_y = 0
+                    self.in_air = False
+                    self.before_fall_x, self.before_fall_y = self.rect.center
+                    dy = object.rect.top - self.rect.bottom
+
+        self.rect.x += dx
+        self.rect.y += dy
+
+        if dx != 0:
+            self.is_moving = True
+        else:
+            self.is_moving = False
+
+        if self.is_moving:
+            self.image = small_monster_walk_images[self.animation_tick // 10]
+        if not self.is_moving:
+            self.image = small_monster_idle_image
+
+        if not self.right:
+            self.image = pygame.transform.flip(self.image, True, False)
+
+        self.animation_tick += 3
+        if self.animation_tick >= 61:
+            self.animation_tick = 0
+
+
+
+
+
 
 
 

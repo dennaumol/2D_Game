@@ -614,8 +614,6 @@ for i in range(7):
                                                   (int(image.get_width() * SCALE), int(image.get_height() * SCALE))).convert_alpha(SCREEN)
     small_monster_walk_images.append(image)
 
-
-
 desert_background_images = []
 for i in range(3):
     image = pygame.image.load(f'data/images/level_objects/backgrounds/desert/layer_{i}.png')

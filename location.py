@@ -1,6 +1,7 @@
 from tiles import *
 from random import *
 from backgrounds import *
+from entities import SmallMonster
 
 
 
@@ -21,6 +22,7 @@ class YellowDesert(Location):
     def __init__(self, start_x, start_y):
         self.x = start_x
         self.y = start_y
+        self.enemies = []
         self.start_x = start_x
         self.start_y = start_y
         self.front = []
@@ -52,16 +54,7 @@ class YellowDesert(Location):
         if self.cur_sand_variation != 0:
             self.front.append(Tile(self.x, self.y - block_size,
                                    eval(f'yellow_sand_decoration_{self.cur_sand_variation}_image')))
-        if self.direction == 1:
-            self.cur_sand_variation += 1
 
-        else:
-            self.cur_sand_variation -= 1
-
-        if self.cur_sand_variation == 4 and self.direction == 1:
-            self.cur_sand_variation = 0
-        elif self.cur_sand_variation == 0 and self.direction == -1:
-            self.cur_sand_variation = 3
         for j in range(50):
             self.behind.append(Tile(self.x, self.y + block_size * (j + 1), sand_block_image))
             if self.y + block_size * (j + 1) > self.bottom:
@@ -77,7 +70,7 @@ class YellowDesert(Location):
             column = self.generate_column()
 
             if self.direction == 1:
-                self.x = column.rect.right + 1
+                self.x = column.rect.right
             else:
                 self.x = column.rect.left - block_size
 
@@ -90,6 +83,9 @@ class YellowDesert(Location):
 
         y_changed = self.y_changing_frequency_desert
         for i in range(length):
+            if randint(0, 15) == 0:
+                enemy = SmallMonster(self.x, self.y)
+                self.enemies.append(enemy)
             if y_changed == 0:
                 y_changed = self.y_changing_frequency_desert
                 k = randint(0, 1)
@@ -134,6 +130,17 @@ class YellowDesert(Location):
 
             sand_block = self.generate_sand()
 
+            if self.direction == 1:
+                self.cur_sand_variation += 1
+
+            else:
+                self.cur_sand_variation -= 1
+
+            if self.cur_sand_variation == 4 and self.direction == 1:
+                self.cur_sand_variation = 0
+            elif self.cur_sand_variation == -1 and self.direction == -1:
+                self.cur_sand_variation = 3
+
             if self.direction == -1:
                 if i != length - 1:
                     self.x = sand_block.rect.left - block_size
@@ -166,18 +173,19 @@ class YellowDesert(Location):
         if not self.first and self.direction == -1:
             self.x -= column_width
 
-
         column = self.generate_column()
 
         if self.direction == -1:
-            self.x = column.rect.left - column_width - 1
+            self.x = column.rect.left - column_width
         elif self.direction == 1:
-            self.x = column.rect.right + 1
+            self.x = column.rect.right
 
         y_changed = self.y_changing_frequency_columns
 
         for i in range(length):
-
+            if randint(0, 5) == 0:
+                enemy = SmallMonster(self.x + 20, self.y - 50)
+                self.enemies.append(enemy)
             if y_changed == 0:
                 k = randint(0, 1)
                 if not self.y - column_height < self.top and k == 0:
@@ -241,6 +249,10 @@ class YellowDesert(Location):
                     self.first = False
 
         return self.objects_with_collision, self.front, self.behind
+
+
+
+
 
 
 

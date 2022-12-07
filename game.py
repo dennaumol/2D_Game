@@ -11,16 +11,19 @@ true_scroll = [0, 0]
 player = Player(0, -500)
 clock = pygame.time.Clock()
 
+
 location = YellowDesert(0, 0)
 objects_with_collision, front, behind = location.generate()
 all_objects = []
+enemies = location.enemies
+print(enemies)
 
 all_objects.extend(behind)
 all_objects.extend(objects_with_collision)
 all_objects.append(player)
+all_objects.extend(enemies)
 all_objects.extend(front)
-
-
+objects_with_collision.extend(enemies)
 
 main_game_loop = True
 while main_game_loop:
@@ -61,10 +64,18 @@ while main_game_loop:
     SCREEN.fill((247, 101, 101))
     location.background.draw(SCREEN)
 
-    player.update(objects_with_collision=objects_with_collision, scroll=scroll, y_dead_bottom=location.bottom)
+    for object in all_objects:
+        if object.type == ENTITY:
+            if object.rect.y > location.bottom:
+                all_objects.remove(object)
+                continue
+            object.update(scroll=scroll, objects_with_collision=objects_with_collision, player=player,
+                          y_dead_bottom=location.bottom)
+        if abs(abs(player.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= SCREEN_WIDTH // 1.5:
+            continue
+        object.draw(SCREEN, scroll)
 
-    for sprite in all_objects:
-        sprite.draw(SCREEN, scroll)
+
     pygame.display.flip()
     clock.tick(FPS)
 pygame.quit()
