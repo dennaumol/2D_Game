@@ -417,6 +417,7 @@ class SmallMonster(Player):
         self.rect.center = (x, y)
         self.speed = 4.5
         self.explode = False
+        self.explode_count_down = 0
 
     def update(self, *args, **kwargs):
         dx = 0
@@ -447,7 +448,7 @@ class SmallMonster(Player):
                         self.jump = False
             if abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) <= 10:
                 self.explode = True
-                self.explode_count_down = FPS * 3
+                self.explode_count_down = FPS * 0.4
 
             if self.explode_count_down < 0:
                 pass
