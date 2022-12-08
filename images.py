@@ -621,3 +621,14 @@ for i in range(3):
                                    (int(image.get_width()) * 3.2, int(image.get_height()) * 3.2)).convert_alpha(SCREEN)
     desert_background_images.append(image)
 
+
+explosion_2_images = []
+for i in range(12):
+    image = pygame.image.load(f'data/images/misc/explosion/48x48x12/{i}.png')
+    image = pygame.transform.scale(image,
+                                   (int(image.get_width() * SCALE), int(image.get_height() * SCALE))).convert_alpha(
+        SCREEN)
+    explosion_2_images.append(image)
+
+
+

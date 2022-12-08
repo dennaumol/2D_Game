@@ -2,6 +2,7 @@ import pygame
 import math
 from settings import *
 from images import *
+from misc import *
 
 
 
@@ -17,11 +18,16 @@ class Entity(pygame.sprite.Sprite):
         self.ang = 90
         self.platform = False
         self.type = ENTITY
+        self.hp = 100
 
     def draw(self, surface, scroll):
         image_rect = self.image.get_rect(centerx=self.rect.centerx - scroll[0], bottom=self.rect.bottom - scroll[1])
         #pygame.draw.rect(surface, "red", (self.rect.x - scroll[0], self.rect.y - scroll[1], self.rect.width, self.rect.height))
         surface.blit(self.image, image_rect)
+
+
+    def take_damage(self, damage):
+        self.hp -= damage
 
 
 class Player(Entity):
@@ -44,6 +50,8 @@ class Player(Entity):
         self.extra_jumps = 1
         self.extra_cur_jumps = 1
         self.before_fall_x, self.before_fall_y = self.rect.center
+        self.hp = 500
+        self.name = PLAYER
 
 
     def update(self, *args, **kwargs):
@@ -64,6 +72,7 @@ class Player(Entity):
 
         if self.rect.bottom > y_dead_bottom:
             self.rect.center = self.before_fall_x, self.before_fall_y
+            self.take_damage(self.hp // 4)
 
         if not self.in_air:
             self.extra_cur_jumps = self.extra_jumps
@@ -416,8 +425,10 @@ class SmallMonster(Player):
         self.rect = self.image.get_bounding_rect()
         self.rect.center = (x, y)
         self.speed = 4.5
-        self.explode = False
-        self.explode_count_down = 0
+        self.self_destroy = False
+        self.self_destroy_count_down_sec = 0.2
+        self.self_destroy_cur_count_down = 0
+        self.name = SMALL_MONSTER
 
     def update(self, *args, **kwargs):
         dx = 0
@@ -431,7 +442,7 @@ class SmallMonster(Player):
         if abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) >= SCREEN_WIDTH:
             return
 
-        if not self.explode:
+        if not self.self_destroy:
             if self.speed <= abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) <= 700 and \
                     abs(abs(player.rect.centery + scroll[1]) - abs(self.rect.centery + scroll[1])) <= 170:
                 if player.rect.centerx > self.rect.centerx:
@@ -447,16 +458,16 @@ class SmallMonster(Player):
                     else:
                         self.jump = False
             if abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) <= 10:
-                self.explode = True
-                self.explode_count_down = FPS * 0.4
-
-            if self.explode_count_down < 0:
-                pass
+                self.self_destroy = True
+                self.self_destroy_cur_count_down = self.self_destroy_count_down_sec * FPS
 
             if self.jump and not self.in_air:
                 self.vel_y = -20
                 self.jump = False
                 self.in_air = True
+
+        if self.self_destroy:
+            self.self_destroy_cur_count_down -= 1
 
         if self.moving_left:
             dx = -self.speed

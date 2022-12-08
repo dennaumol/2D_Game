@@ -9,6 +9,7 @@ class Tile(pygame.sprite.Sprite):
         self.rect.x, self.rect.y = (x, y)
         self.platform = platform
         self.type = LEVEL_OBJECT
+        self.name = LEVEL_OBJECT
 
     def draw(self, surface, scroll):
         surface.blit(self.image, (self.rect.x - scroll[0], self.rect.y - scroll[1]))

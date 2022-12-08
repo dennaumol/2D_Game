@@ -6,3 +6,7 @@ GRAVITY = 0.75
 SCREEN = pygame.display.set_mode(SCREEN_SIZE)
 ENTITY = 'entity'
 LEVEL_OBJECT = 'level object'
+MISC = 'misc'
+PLAYER = 'player'
+SMALL_MONSTER = 'small_monster'
+EXPLOSION = 'explosion'
