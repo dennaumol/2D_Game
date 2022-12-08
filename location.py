@@ -32,7 +32,7 @@ class YellowDesert(Location):
         self.objects_with_collision = []
         self.first = True
         self.both_directions = choice([True, False])
-        self.total_length = 10
+        self.total_length = 30
         self.y_changing_frequency_desert = 13
         self.y_changing_frequency_columns = 1
         self.first_location = DESERT
