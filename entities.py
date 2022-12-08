@@ -446,6 +446,8 @@ class SmallMonster(Player):
         self.self_destroy_cur_count_down = 0
         self.name = SMALL_MONSTER
         self.hp = 200
+        self.stuck_tick_sec = 4
+        self.stuck_tick_cur = 100
 
     def update(self, *args, **kwargs):
         dx = 0
@@ -455,6 +457,7 @@ class SmallMonster(Player):
         scroll = kwargs['scroll']
         y_dead_bottom = kwargs['y_dead_bottom']
         player = kwargs['player']
+
 
         if abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) >= SCREEN_WIDTH:
             return
@@ -535,8 +538,13 @@ class SmallMonster(Player):
 
         if dx != 0:
             self.is_moving = True
+            self.stuck_tick_cur == self.stuck_tick_sec * FPS
         else:
             self.is_moving = False
+            self.stuck_tick_cur -= 1
+            if self.stuck_tick_cur <= 0:
+                self.self_destroy = True
+
 
         if self.is_moving:
             self.image = small_monster_walk_images[self.animation_tick // 10]

@@ -32,7 +32,7 @@ class YellowDesert(Location):
         self.objects_with_collision = []
         self.first = True
         self.both_directions = choice([True, False])
-        self.total_length = 20
+        self.total_length = 10
         self.y_changing_frequency_desert = 13
         self.y_changing_frequency_columns = 1
         self.first_location = DESERT
@@ -62,7 +62,7 @@ class YellowDesert(Location):
 
         return top_sand
 
-    def generate_desert(self, length=50):
+    def generate_desert(self, length=20):
         self.cur_sand_variation = 0
         if self.direction == -1:
             self.cur_sand_variation = 3
@@ -83,9 +83,6 @@ class YellowDesert(Location):
 
         y_changed = self.y_changing_frequency_desert
         for i in range(length):
-            if randint(0, 40) == 0:
-                enemy = SmallMonster(self.x, self.y)
-                self.enemies.append(enemy)
             if y_changed == 0:
                 y_changed = self.y_changing_frequency_desert
                 k = randint(0, 1)
@@ -169,7 +166,7 @@ class YellowDesert(Location):
 
         return top_column
 
-    def generate_columns(self, length=5):
+    def generate_columns(self, length=2):
         if not self.first and self.direction == -1:
             self.x -= column_width
 
