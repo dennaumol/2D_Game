@@ -37,7 +37,10 @@ class Player(Entity):
         self.rect = self.image.get_bounding_rect()
         self.rect.width //= 3
         self.rect.center = (x, y)
+        self.shooting = False
         self.speed = 11
+        self.shooting_tick = 7
+        self.shooting_tick_cur = 0
         self.dash = False
         self.dash_speed = 200
         self.jump = False
@@ -53,8 +56,19 @@ class Player(Entity):
         self.hp = 500
         self.name = PLAYER
 
+    def shot(self, scroll):
+        mx, my = pygame.mouse.get_pos()
+        start_pos = (self.rect.centerx, self.rect.top + 30)
+        rot = math.atan2(my + scroll[1] - start_pos[1], mx + scroll[0] - start_pos[0])
+        print(math.degrees(rot))
+        move = math.cos(rot) * 25, math.sin(rot) * 25
+        bullet = Projectile(start_pos[0], start_pos[1], 45, -rot, move)
+
+        return bullet
+
 
     def update(self, *args, **kwargs):
+        self.shooting_tick_cur -= 1
         mouse_x, mouse_y = pygame.mouse.get_pos()
         super(Player, self).update(*args, **kwargs)
         dx = 0
@@ -71,8 +85,9 @@ class Player(Entity):
         y_dead_bottom = kwargs['y_dead_bottom']
 
         if self.rect.bottom > y_dead_bottom:
+            self.take_damage(self.hp // 4 + 15)
             self.rect.center = self.before_fall_x, self.before_fall_y
-            self.take_damage(self.hp // 4)
+
 
         if not self.in_air:
             self.extra_cur_jumps = self.extra_jumps
@@ -122,6 +137,7 @@ class Player(Entity):
             # check collision in the x direction
             if object.rect.colliderect(self.rect.x + dx, self.rect.y, self.rect.width, self.rect.height) and not object.platform:
                 dx = 0
+
             # check for collision in the y direction
             if object.rect.colliderect(self.rect.x, self.rect.y + dy, self.rect.width, self.rect.height):
                 # check if below the ground, i.e. jumping
@@ -429,6 +445,7 @@ class SmallMonster(Player):
         self.self_destroy_count_down_sec = 0.10
         self.self_destroy_cur_count_down = 0
         self.name = SMALL_MONSTER
+        self.hp = 200
 
     def update(self, *args, **kwargs):
         dx = 0
@@ -457,7 +474,8 @@ class SmallMonster(Player):
                         self.jump = True
                     else:
                         self.jump = False
-            if abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) <= 10:
+            if abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) <= 30 and \
+                abs(abs(player.rect.centery + scroll[1]) - abs(self.rect.centery + scroll[1])) <= 30:
                 self.self_destroy = True
                 self.self_destroy_cur_count_down = self.self_destroy_count_down_sec * FPS
 
@@ -489,11 +507,7 @@ class SmallMonster(Player):
 
         for object in objects_with_collision:
             # check collision in the x direction
-            if abs(abs(self.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= SCREEN_WIDTH:
-                continue
-            if object == self:
-                continue
-            if object == player:
+            if abs(abs(self.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= 70:
                 continue
             if object.rect.colliderect(self.rect.x + dx, self.rect.y, self.rect.width,
                                        self.rect.height) and not object.platform:
@@ -535,6 +549,45 @@ class SmallMonster(Player):
         self.animation_tick += 3
         if self.animation_tick >= 61:
             self.animation_tick = 0
+
+
+class Projectile(Entity):
+    def __init__(self, x, y, damage, ang, move):
+        super(Projectile, self).__init__()
+        self.image, self.rect,  = rot_center(blue_projectile, math.degrees(ang), x, y)
+        self.move = move
+        self.damage = damage
+        self.type = PROJECTILE
+        self.name = PROJECTILE
+        self.collide = False
+        self.tick = 0
+        self.living_time_sec = 6
+
+    def update(self, *args, **kwargs):
+        self.rect.x += self.move[0]
+        self.rect.y += self.move[1]
+        self.tick += 1
+
+        if self.tick >= self.living_time_sec * FPS:
+            self.collide = True
+
+        objects_with_collision = kwargs['objects_with_collision']
+        for object in objects_with_collision:
+            if object.rect.x <= self.rect.centerx <= object.rect.x + object.rect.width and \
+                object.rect.y <= self.rect.centery <= object.rect.y + object.rect.height:
+                self.collide = True
+
+        entities = kwargs['entities']
+        for entity in entities:
+            if entity.name == PLAYER:
+                continue
+            if entity.rect.colliderect(self.rect):
+                entity.take_damage(self.damage)
+                self.collide = True
+
+
+
+
 
 
 

@@ -83,7 +83,7 @@ class YellowDesert(Location):
 
         y_changed = self.y_changing_frequency_desert
         for i in range(length):
-            if randint(0, 15) == 0:
+            if randint(0, 40) == 0:
                 enemy = SmallMonster(self.x, self.y)
                 self.enemies.append(enemy)
             if y_changed == 0:

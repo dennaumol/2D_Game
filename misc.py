@@ -25,7 +25,7 @@ class Explosion:
             self.damage = True
             for entity in entities:
                 if entity.rect.colliderect(self.rect.x, self.rect.y, self.rect.width, self.rect.height):
-                    entity.take_damage(300)
+                    entity.take_damage(600)
 
     def draw(self, surface, scroll):
         image_rect = self.image.get_rect(centerx=self.rect.centerx - scroll[0], bottom=self.rect.bottom - scroll[1])

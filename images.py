@@ -2,6 +2,13 @@ from settings import *
 
 SCALE = 3.5
 
+
+def rot_center(image, angle, x, y):
+    rotated_image = pygame.transform.rotate(image, angle)
+    new_rect = rotated_image.get_rect(center=image.get_rect(center=(x, y)).center)
+
+    return rotated_image, new_rect
+
 image = pygame.image.load('data//images//level_objects//sand//yellow//sand_0.png')
 yellow_sand_0_image = pygame.transform.scale(image,
                                              (int(image.get_width() * SCALE),
@@ -624,11 +631,16 @@ for i in range(3):
 
 explosion_2_images = []
 for i in range(12):
-    image = pygame.image.load(f'data/images/misc/explosion/48x48x12/{i}.png')
+    image = pygame.image.load(f'data/images/misc/explosion/2/{i}.png')
     image = pygame.transform.scale(image,
                                    (int(image.get_width() * SCALE), int(image.get_height() * SCALE))).convert_alpha(
         SCREEN)
     explosion_2_images.append(image)
 
 
+
+image = pygame.image.load(f'data/images/projectiles/blue/90.gif')
+blue_projectile = pygame.transform.scale(image,
+                                   (int(image.get_width() * SCALE), int(image.get_height() * SCALE))).convert_alpha(
+        SCREEN)
 
