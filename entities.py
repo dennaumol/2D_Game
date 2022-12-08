@@ -426,7 +426,7 @@ class SmallMonster(Player):
         self.rect.center = (x, y)
         self.speed = 4.5
         self.self_destroy = False
-        self.self_destroy_count_down_sec = 0.2
+        self.self_destroy_count_down_sec = 0.10
         self.self_destroy_cur_count_down = 0
         self.name = SMALL_MONSTER
 
