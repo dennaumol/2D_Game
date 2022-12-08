@@ -60,7 +60,6 @@ class Player(Entity):
         mx, my = pygame.mouse.get_pos()
         start_pos = (self.rect.centerx, self.rect.top + 30)
         rot = math.atan2(my + scroll[1] - start_pos[1], mx + scroll[0] - start_pos[0])
-        print(math.degrees(rot))
         move = math.cos(rot) * 25, math.sin(rot) * 25
         bullet = Projectile(start_pos[0], start_pos[1], 45, -rot, move)
 
