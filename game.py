@@ -29,7 +29,7 @@ existing_entities = []
 main_game_loop = True
 while main_game_loop:
 
-    if player.hp > 0 and len(existing_entities) < 3:
+    if player.hp > 0 and len(existing_entities) < 5:
         all_objects.append(SmallMonster(player.rect.x + randint(-1000, 1000), player.rect.y - 350))
 
 
