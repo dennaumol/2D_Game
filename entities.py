@@ -39,7 +39,7 @@ class Player(Entity):
         self.rect.center = (x, y)
         self.shooting = False
         self.speed = 11
-        self.shooting_tick = 7
+        self.shooting_tick = 9
         self.shooting_tick_cur = 0
         self.dash = False
         self.dash_speed = 200
@@ -463,7 +463,7 @@ class SmallMonster(Player):
 
         if not self.self_destroy:
             if self.speed <= abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) <= 700 and \
-                    abs(abs(player.rect.centery + scroll[1]) - abs(self.rect.centery + scroll[1])) <= 170:
+                    abs(abs(player.rect.centery + scroll[1]) - abs(self.rect.centery + scroll[1])) <= 300:
                 if player.rect.centerx > self.rect.centerx:
                     dx = self.speed
                     self.right = False
@@ -509,7 +509,7 @@ class SmallMonster(Player):
 
         for object in objects_with_collision:
             # check collision in the x direction
-            if abs(abs(self.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= 70:
+            if abs(abs(self.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= 100:
                 continue
             if object.rect.colliderect(self.rect.x + dx, self.rect.y, self.rect.width,
                                        self.rect.height) and not object.platform:

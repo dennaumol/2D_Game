@@ -29,8 +29,8 @@ existing_entities = []
 main_game_loop = True
 while main_game_loop:
 
-    if player.hp > 0 and len(existing_entities) < 8:
-        all_objects.append(SmallMonster(player.rect.x + randint(-400, 400), player.rect.y - 400))
+    if player.hp > 0 and len(existing_entities) < 3:
+        all_objects.append(SmallMonster(player.rect.x + randint(-1000, 1000), player.rect.y - 350))
 
 
 
@@ -81,7 +81,7 @@ while main_game_loop:
     location.background.draw(SCREEN)
 
     for object in all_objects:
-        if abs(abs(player.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= SCREEN_WIDTH // 1.6:
+        if abs(abs(player.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= SCREEN_WIDTH // 0.5:
             if object.type == ENTITY:
                 all_objects.remove(object)
                 if object in existing_entities:
