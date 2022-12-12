@@ -1,6 +1,6 @@
 from settings import *
 
-SCALE = 3.5
+SCALE = 2.5
 
 
 def rot_center(image, angle, x, y):
@@ -641,6 +641,6 @@ for i in range(12):
 
 image = pygame.image.load(f'data/images/projectiles/blue/90.gif')
 blue_projectile = pygame.transform.scale(image,
-                                   (int(image.get_width() * SCALE), int(image.get_height() * SCALE))).convert_alpha(
+                                   (int(image.get_width() * 1.2), int(image.get_height() * 1.2))).convert_alpha(
         SCREEN)
 

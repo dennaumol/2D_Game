@@ -29,14 +29,9 @@ existing_entities = []
 main_game_loop = True
 while main_game_loop:
 
-    if player.hp > 0 and len(existing_entities) < 5:
-        all_objects.append(SmallMonster(player.rect.x + randint(-1000, 1000), player.rect.y - 350))
-
-
 
     true_scroll[0] += (player.rect.x - true_scroll[0] - (SCREEN_WIDTH // 2 - player.rect.width // 2)) / 10
     true_scroll[1] += (player.rect.y - true_scroll[1] - (SCREEN_HEIGHT // 2 - player.rect.height // 2)) / 10
-    true_scroll[1] = min(location.bottom - (SCREEN_HEIGHT + player.rect.height), true_scroll[1])
 
     scroll = true_scroll.copy()
     scroll[0] = int(scroll[0])
@@ -78,14 +73,9 @@ while main_game_loop:
     if not keys[pygame.K_a] and not keys[pygame.K_d]:
         player.is_moving = False
     SCREEN.fill((247, 101, 101))
-    location.background.draw(SCREEN)
 
     for object in all_objects:
-        if abs(abs(player.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= SCREEN_WIDTH // 0.5:
-            if object.type == ENTITY:
-                all_objects.remove(object)
-                if object in existing_entities:
-                    existing_entities.remove(object)
+        if abs(abs(player.rect.centerx) - abs(object.rect.centerx)) >= SCREEN_WIDTH // 1.5:
             continue
         if object.name == EXPLOSION:
             object.update(entities=existing_entities)
@@ -101,7 +91,8 @@ while main_game_loop:
                 if object not in existing_entities:
                     existing_entities.append(object)
             if object.name == SMALL_MONSTER:
-                if object.self_destroy_cur_count_down < 0:
+                if object.self_destroy_cur_count_down < 0 and object.self_destroy:
+                    print('Boom')
                     all_objects.append(Explosion(object.rect.centerx, object.rect.centery))
                     all_objects.remove(object)
                     existing_entities.remove(object)

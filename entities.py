@@ -39,7 +39,7 @@ class Player(Entity):
         self.rect.center = (x, y)
         self.shooting = False
         self.speed = 11
-        self.shooting_tick = 9
+        self.shooting_tick = 12
         self.shooting_tick_cur = 0
         self.dash = False
         self.dash_speed = 200
@@ -58,7 +58,7 @@ class Player(Entity):
 
     def shot(self, scroll):
         mx, my = pygame.mouse.get_pos()
-        start_pos = (self.rect.centerx, self.rect.top + 30)
+        start_pos = (self.rect.centerx, self.rect.top + 34)
         rot = math.atan2(my + scroll[1] - start_pos[1], mx + scroll[0] - start_pos[0])
         move = math.cos(rot) * 25, math.sin(rot) * 25
         bullet = Projectile(start_pos[0], start_pos[1], 45, -rot, move)
@@ -313,7 +313,7 @@ class Player(Entity):
                 elif 90 <= self.ang < 97:
                     self.image = player_run_90_bk[self.animation_tick // 20]
 
-                elif 97 <= self.ang < 104:
+                elif 97 <= self.ang < 105:
                     self.image = player_run_97_bk[self.animation_tick // 20]
 
                 elif 105 <= self.ang < 112:
@@ -429,7 +429,7 @@ class Player(Entity):
             self.image = pygame.transform.flip(self.image, True, False)
 
         self.animation_tick += 2
-        if self.animation_tick >= 61:
+        if self.animation_tick >= 80:
             self.animation_tick = 0
 
 
@@ -442,11 +442,12 @@ class SmallMonster(Player):
         self.speed = 4.5
         self.self_destroy = False
         self.self_destroy_count_down_sec = 0.10
-        self.self_destroy_cur_count_down = 0
+        self.self_destroy_cur_count_down = 100
         self.name = SMALL_MONSTER
         self.hp = 200
-        self.stuck_tick_sec = 4
-        self.stuck_tick_cur = 100
+        self.stuck_tick_sec = 200000000
+        self.stuck_tick_cur = 10000000
+        self.jump = False
 
     def update(self, *args, **kwargs):
         dx = 0
@@ -472,13 +473,15 @@ class SmallMonster(Player):
                     dx = -self.speed
                     self.right = True
                 if 50 <= abs(abs(player.rect.centery + scroll[1]) - abs(self.rect.centery + scroll[1])) <= 300:
-                    if player.rect.centery < self.rect.centery:
+                    if player.rect.centery < self.rect.centery and not self.in_air:
                         self.jump = True
                     else:
                         self.jump = False
-            if abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) <= 30 and \
-                abs(abs(player.rect.centery + scroll[1]) - abs(self.rect.centery + scroll[1])) <= 30:
+            if abs(abs(player.rect.centerx) - abs(self.rect.centerx)) <= 30 and \
+                abs(abs(player.rect.centery) - abs(self.rect.centery)) <= 30:
                 self.self_destroy = True
+                print(abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])))
+                print(player.rect.x, self.rect.x)
                 self.self_destroy_cur_count_down = self.self_destroy_count_down_sec * FPS
 
             if self.jump and not self.in_air:
