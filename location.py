@@ -43,6 +43,7 @@ class YellowDesert(Location):
         self.behind = []
         self.cur_sand_variation = 0
         self.enemies = []
+        self.all_location_objects = []
         self.bottom = start_y + 500
 
     def generate_sand_column(self):
@@ -56,7 +57,7 @@ class YellowDesert(Location):
         if self.cur_sand_variation > 3:
             self.cur_sand_variation = 0
         self.y += sand_block_size
-        for i in range(5):
+        for i in range(2):
             self.behind.append(Tile(self.x, self.y, sand_block_image))
             self.y += sand_block_size
         for i in range(3):
@@ -65,15 +66,24 @@ class YellowDesert(Location):
         return top_sand
 
     def generate(self):
-        length = 300
+        length = 2000
         for i in range(length):
-            if i == 20 or length - 20 == i:
-                self.objects_with_collision.append(Border(self.x, self.y, 2000))
             if randint(0, 10) == 0:
                 self.enemies.append(SmallMonster(self.x, self.y - 100))
             top_sand = self.generate_sand_column()
             self.x, self.y = top_sand.rect.x + sand_block_size, top_sand.rect.y
+        self.all_location_objects.extend(self.objects_with_collision)
+        self.all_location_objects.extend(self.front)
+        self.all_location_objects.extend(self.behind)
+
+
         return self.objects_with_collision, self.front, self.behind
+
+    def init_location_rect(self):
+        self.top_y = min(self.all_location_objects, key= lambda x: x.rect.top)
+        self.left_x = min(self.all_location_objects, key=lambda x: x.rect.left)
+        self.right_x = max(self.all_location_objects, key=lambda x: x.rect.right)
+        self.bottom_y = max(self.all_location_objects, key=lambda x: x.rect.bottom)
 
 
 

@@ -75,7 +75,7 @@ while main_game_loop:
     SCREEN.fill((247, 101, 101))
 
     for object in all_objects:
-        if abs(abs(player.rect.centerx) - abs(object.rect.centerx)) >= SCREEN_WIDTH // 1.5:
+        if abs(abs(player.rect.centerx) - abs(object.rect.centerx)) >= SCREEN_WIDTH // 1.7:
             continue
         if object.name == EXPLOSION:
             object.update(entities=existing_entities)

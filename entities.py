@@ -449,6 +449,9 @@ class SmallMonster(Player):
         self.stuck_tick_cur = 10000000
         self.jump = False
 
+    def take_damage(self, damage):
+        self.hp -= damage
+
     def update(self, *args, **kwargs):
         dx = 0
         dy = 0
@@ -512,7 +515,8 @@ class SmallMonster(Player):
 
         for object in objects_with_collision:
             # check collision in the x direction
-            if abs(abs(self.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= 100:
+            if abs(abs(self.rect.centerx) - abs(object.rect.centerx)) >= 100:
+
                 continue
             if object.rect.colliderect(self.rect.x + dx, self.rect.y, self.rect.width,
                                        self.rect.height) and not object.platform:
