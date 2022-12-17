@@ -28,8 +28,6 @@ class Entity(pygame.sprite.Sprite):
 
     def check_collisions(self, objects_with_collision):
         for object in objects_with_collision:
-            if abs(abs(self.rect.centerx) - abs(object.rect.centerx)) >= SCREEN_WIDTH:
-                continue
             if object.rect.colliderect(self.rect.x + self.dx, self.rect.y, self.rect.width, self.rect.height) and not object.platform:
                 self.dx = 0
             # check for collision in the y direction
@@ -49,7 +47,6 @@ class Entity(pygame.sprite.Sprite):
                     self.in_air = False
                     self.before_fall_x, self.before_fall_y = self.rect.center
                     self.dy = object.rect.top - self.rect.bottom
-
 
     def take_damage(self, damage):
         self.hp -= damage
@@ -454,13 +451,7 @@ class SmallMonster(Player):
         self.dy = 0
 
         objects_with_collision = kwargs['objects_with_collision']
-        scroll = kwargs['scroll']
-        y_dead_bottom = kwargs['y_dead_bottom']
         player = kwargs['player']
-
-
-        if abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) >= SCREEN_WIDTH:
-            return
 
         if not self.self_destroy:
             if self.speed <= abs(abs(player.rect.centerx) - abs(self.rect.centerx)) <= 700 and \
@@ -513,8 +504,6 @@ class SmallMonster(Player):
         self.rect.x += self.dx
         self.rect.y += self.dy
 
-
-
         if self.is_moving:
             self.image = small_monster_walk_images[self.animation_tick // 10]
         if not self.is_moving:
@@ -523,7 +512,7 @@ class SmallMonster(Player):
         if not self.right:
             self.image = pygame.transform.flip(self.image, True, False)
 
-        self.animation_tick += 3
+        self.animation_tick += 1
         if self.animation_tick >= 61:
             self.animation_tick = 0
 

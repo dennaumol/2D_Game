@@ -3,6 +3,7 @@ from images import *
 
 class Explosion:
     def __init__(self, x, y):
+        self.z_index = 100
         self.tick = 0
         self.type = MISC
         self.images = explosion_2_images

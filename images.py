@@ -15,7 +15,6 @@ yellow_sand_0_image = pygame.transform.scale(image,
                                               int(image.get_height() * SCALE))).convert_alpha(SCREEN)
 
 image = pygame.image.load('data//images//level_objects//sand//yellow//sand_1.png')
-print(image.get_size())
 yellow_sand_1_image = pygame.transform.scale(image,
                                              (int(image.get_width() * SCALE),
                                               int(image.get_height() * SCALE))).convert_alpha(SCREEN)

@@ -1,3 +1,5 @@
+import random
+
 import pygame
 
 from tiles import *
@@ -34,14 +36,15 @@ DESERT = 'DESERT'
 
 class YellowDesert(Location):
     def __init__(self):
-        self.x = 3000
-        self.y = 7000
+        self.x = CHUNK_WIDTH * 3
+        self.y = CHUNK_HEIGHT * 3
         self.objects_with_collision = []
         self.cur_sand_variation = 0
         self.enemies = []
         self.all_location_objects = []
         self.dead_bottom = 0
         self.chunks = {}
+        self.player_spawn = (self.x + CHUNK_WIDTH, self.y)
 
     def generate_sand_column(self):
         sand = eval(f'Tile(self.x, self.y, yellow_sand_{self.cur_sand_variation}_image, z_index=2)')
@@ -63,9 +66,10 @@ class YellowDesert(Location):
         return top_sand
 
     def generate(self):
-        length = 1000
+        length = 1250
         for i in range(length):
-            #self.enemies.append(SmallMonster(self.x, self.y - 100))
+            if randint(0, 10) == 0:
+                self.all_location_objects.append(SmallMonster(self.x, self.y - 100))
             top_sand = self.generate_sand_column()
             self.x, self.y = top_sand.rect.x + sand_block_size, top_sand.rect.y
         self.all_location_objects.extend(self.objects_with_collision)
@@ -76,7 +80,8 @@ class YellowDesert(Location):
 
     def calculate_location_rect(self):
         self.dead_bottom = max(self.all_location_objects, key=lambda object: object.rect.bottom).rect.bottom
-        self.rect = pygame.Rect(0, 0, 62000, 62000)
+        width = max(self.all_location_objects, key=lambda object: object.rect.x).rect.x + CHUNK_WIDTH * 3
+        self.rect = pygame.Rect(0, 0, width, self.dead_bottom + CHUNK_HEIGHT * 3)
 
     def create_chunks(self):
         for chunk_row in range(self.rect.height // CHUNK_HEIGHT + 1):
@@ -90,6 +95,8 @@ class YellowDesert(Location):
             chunk_col = object.rect.x // CHUNK_WIDTH
             if object in self.objects_with_collision:
                 self.chunks[chunk_col, chunk_row].objects[0].append(object)
+            elif object.type == ENTITY:
+                self.chunks[chunk_col, chunk_row].objects[2].append(object)
             else:
                 self.chunks[chunk_col, chunk_row].objects[1].append(object)
 
