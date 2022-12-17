@@ -19,8 +19,6 @@ class Border:
         pass
 
 
-
-
 class Location:
     pass
 
@@ -35,55 +33,79 @@ DESERT = 'DESERT'
 
 
 class YellowDesert(Location):
-    def __init__(self, start_x, start_y):
-        self.x = start_x
-        self.y = start_y
+    def __init__(self):
+        self.x = 3000
+        self.y = 7000
         self.objects_with_collision = []
-        self.front = []
-        self.behind = []
         self.cur_sand_variation = 0
         self.enemies = []
         self.all_location_objects = []
-        self.bottom = start_y + 500
+        self.dead_bottom = 0
+        self.chunks = {}
 
     def generate_sand_column(self):
-        sand = eval(f'Tile(self.x, self.y, yellow_sand_{self.cur_sand_variation}_image)')
+        sand = eval(f'Tile(self.x, self.y, yellow_sand_{self.cur_sand_variation}_image, z_index=2)')
         top_sand = sand
         self.objects_with_collision.append(sand)
         if self.cur_sand_variation != 0:
-            sand = eval(f'Tile(self.x, self.y - sand_block_size, yellow_sand_decoration_{self.cur_sand_variation}_image)')
-            self.front.append(sand)
+            sand = eval(f'Tile(self.x, self.y - sand_block_size, yellow_sand_decoration_{self.cur_sand_variation}_image, collision=False, z_index=1)')
+            self.all_location_objects.append(sand)
         self.cur_sand_variation += 1
         if self.cur_sand_variation > 3:
             self.cur_sand_variation = 0
         self.y += sand_block_size
-        for i in range(2):
-            self.behind.append(Tile(self.x, self.y, sand_block_image))
+        for i in range(10):
+            self.all_location_objects.append(Tile(self.x, self.y, sand_block_image, collision=False, z_index=-1))
             self.y += sand_block_size
         for i in range(3):
-            self.behind.append(eval(f'Tile(self.x, self.y, yellow_sand_under_{i}_image)'))
+            self.all_location_objects.append(eval(f'Tile(self.x, self.y, yellow_sand_under_{i}_image, collision=False, z_index=-1)'))
             self.y += sand_block_size
         return top_sand
 
     def generate(self):
-        length = 2000
+        length = 1000
         for i in range(length):
-            if randint(0, 10) == 0:
-                self.enemies.append(SmallMonster(self.x, self.y - 100))
+            #self.enemies.append(SmallMonster(self.x, self.y - 100))
             top_sand = self.generate_sand_column()
             self.x, self.y = top_sand.rect.x + sand_block_size, top_sand.rect.y
         self.all_location_objects.extend(self.objects_with_collision)
-        self.all_location_objects.extend(self.front)
-        self.all_location_objects.extend(self.behind)
+
+        self.calculate_location_rect()
+        self.create_chunks()
+        self.allocate_into_chunks()
+
+    def calculate_location_rect(self):
+        self.dead_bottom = max(self.all_location_objects, key=lambda object: object.rect.bottom).rect.bottom
+        self.rect = pygame.Rect(0, 0, 62000, 62000)
+
+    def create_chunks(self):
+        for chunk_row in range(self.rect.height // CHUNK_HEIGHT + 1):
+            for chunk_col in range(self.rect.width // CHUNK_WIDTH + 1):
+                chunk = Chunk(chunk_col * CHUNK_WIDTH, chunk_row * CHUNK_HEIGHT)
+                self.chunks[(chunk_col, chunk_row)] = chunk
+
+    def allocate_into_chunks(self):
+        for object in self.all_location_objects:
+            chunk_row = object.rect.y // CHUNK_HEIGHT
+            chunk_col = object.rect.x // CHUNK_WIDTH
+            if object in self.objects_with_collision:
+                self.chunks[chunk_col, chunk_row].objects[0].append(object)
+            else:
+                self.chunks[chunk_col, chunk_row].objects[1].append(object)
+
+    def get_chunk_objects(self, chunk_col, chunk_row):
+        return self.chunks[chunk_col, chunk_row].objects.copy()
 
 
-        return self.objects_with_collision, self.front, self.behind
 
-    def init_location_rect(self):
-        self.top_y = min(self.all_location_objects, key= lambda x: x.rect.top)
-        self.left_x = min(self.all_location_objects, key=lambda x: x.rect.left)
-        self.right_x = max(self.all_location_objects, key=lambda x: x.rect.right)
-        self.bottom_y = max(self.all_location_objects, key=lambda x: x.rect.bottom)
+
+
+
+
+
+
+
+
 
 
 

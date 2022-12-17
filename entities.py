@@ -1,13 +1,11 @@
-import pygame
 import math
-from settings import *
-from images import *
-from misc import *
 
+from misc import *
+from random import *
 
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, z_index=0):
         super(Entity, self).__init__()
         self.left = False
         self.moving_left = False
@@ -19,11 +17,38 @@ class Entity(pygame.sprite.Sprite):
         self.platform = False
         self.type = ENTITY
         self.hp = 100
+        self.dx = 0
+        self.dy = 0
+        self.z_index = z_index
 
     def draw(self, surface, scroll):
         image_rect = self.image.get_rect(centerx=self.rect.centerx - scroll[0], bottom=self.rect.bottom - scroll[1])
         #pygame.draw.rect(surface, "red", (self.rect.x - scroll[0], self.rect.y - scroll[1], self.rect.width, self.rect.height))
         surface.blit(self.image, image_rect)
+
+    def check_collisions(self, objects_with_collision):
+        for object in objects_with_collision:
+            if abs(abs(self.rect.centerx) - abs(object.rect.centerx)) >= SCREEN_WIDTH:
+                continue
+            if object.rect.colliderect(self.rect.x + self.dx, self.rect.y, self.rect.width, self.rect.height) and not object.platform:
+                self.dx = 0
+            # check for collision in the y direction
+            if object.rect.colliderect(self.rect.x, self.rect.y + self.dy, self.rect.width, self.rect.height):
+                # check if below the ground, i.e. jumping
+                if self.vel_y < 0 and not object.platform:
+                    self.vel_y = 0
+                    self.dy = object.rect.bottom - self.rect.top
+                # check if above the ground, i.e. falling
+                elif self.vel_y >= 0 and not object.platform:
+                    self.vel_y = 0
+                    self.in_air = False
+                    self.before_fall_x, self.before_fall_y = self.rect.center
+                    self.dy = object.rect.top - self.rect.bottom
+                elif self.vel_y >= 0 and object.platform and not (self.rect.bottom > object.rect.top):
+                    self.vel_y = 0
+                    self.in_air = False
+                    self.before_fall_x, self.before_fall_y = self.rect.center
+                    self.dy = object.rect.top - self.rect.bottom
 
 
     def take_damage(self, damage):
@@ -31,8 +56,8 @@ class Entity(pygame.sprite.Sprite):
 
 
 class Player(Entity):
-    def __init__(self, x, y):
-        super(Player, self).__init__()
+    def __init__(self, x, y, z_index=0):
+        super(Player, self).__init__(z_index)
         self.image = player_idle_90_ah
         self.rect = self.image.get_bounding_rect()
         self.rect.width //= 3
@@ -60,8 +85,8 @@ class Player(Entity):
         mx, my = pygame.mouse.get_pos()
         start_pos = (self.rect.centerx, self.rect.top + 34)
         rot = math.atan2(my + scroll[1] - start_pos[1], mx + scroll[0] - start_pos[0])
-        move = math.cos(rot) * 25, math.sin(rot) * 25
-        bullet = Projectile(start_pos[0], start_pos[1], 45, -rot, move)
+        move = math.cos(rot) * 20, math.sin(rot) * 20
+        bullet = Projectile(start_pos[0], start_pos[1], 45, -rot, move, -100)
 
         return bullet
 
@@ -70,8 +95,8 @@ class Player(Entity):
         self.shooting_tick_cur -= 1
         mouse_x, mouse_y = pygame.mouse.get_pos()
         super(Player, self).update(*args, **kwargs)
-        dx = 0
-        dy = 0
+        self.dx = 0
+        self.dy = 0
         self.dash_cur_cooldown -= 1
         if self.dash_cur_count == self.dash_max_count:
             self.dash_cur_cooldown = FPS * self.dash_cooldown_sec
@@ -97,22 +122,22 @@ class Player(Entity):
             self.in_air = True
 
         if self.moving_left:
-            dx = -self.speed
+            self.dx = -self.speed
 
         if self.moving_right:
-            dx = self.speed
+            self.dx = self.speed
 
         if self.dash and self.dash_cur_count > 0:
             if self.moving_right:
-                dx = self.dash_speed
+                self.dx = self.dash_speed
             elif self.moving_left:
-                dx = -self.dash_speed
+                self.dx = -self.dash_speed
 
             if not self.is_moving:
                 if mouse_x + scroll[0] >= self.rect.centerx:
-                    dx = self.dash_speed
+                    self.dx = self.dash_speed
                 else:
-                    dx = -self.dash_speed
+                    self.dx = -self.dash_speed
             self.dash_cur_count -= 1
 
         if self.extra_cur_jumps > 0 and self.in_air and self.jump:
@@ -126,39 +151,13 @@ class Player(Entity):
             self.jump = False
 
         self.vel_y += GRAVITY
-        dy += self.vel_y
+        self.dy += self.vel_y
 
-        for object in objects_with_collision:
-            if abs(abs(self.rect.centerx + scroll[0]) - abs(object.rect.centerx + scroll[0])) >= SCREEN_WIDTH:
-                continue
-            if object.type == ENTITY:
-                continue
-            # check collision in the x direction
-            if object.rect.colliderect(self.rect.x + dx, self.rect.y, self.rect.width, self.rect.height) and not object.platform:
-                dx = 0
+        self.check_collisions(objects_with_collision)
 
-            # check for collision in the y direction
-            if object.rect.colliderect(self.rect.x, self.rect.y + dy, self.rect.width, self.rect.height):
-                # check if below the ground, i.e. jumping
-                if self.vel_y < 0 and not object.platform:
-                    self.vel_y = 0
-                    dy = object.rect.bottom - self.rect.top
-                # check if above the ground, i.e. falling
-                elif self.vel_y >= 0 and not object.platform:
-                    self.vel_y = 0
-                    self.in_air = False
-                    self.before_fall_x, self.before_fall_y = self.rect.center
-                    dy = object.rect.top - self.rect.bottom
-                elif self.vel_y >= 0 and object.platform and not (self.rect.bottom > object.rect.top):
-                    self.vel_y = 0
-                    self.in_air = False
-                    self.before_fall_x, self.before_fall_y = self.rect.center
-                    dy = object.rect.top - self.rect.bottom
-
-
-        self.rect.x += dx
-        self.rect.y += dy
-        if dx == 0:
+        self.rect.x += self.dx
+        self.rect.y += self.dy
+        if self.dx == 0:
             self.is_moving = False
 
         start_pos = (self.rect.centerx + self.rect.width // 2,
@@ -434,8 +433,8 @@ class Player(Entity):
 
 
 class SmallMonster(Player):
-    def __init__(self, x, y):
-        super(SmallMonster, self).__init__(x, y)
+    def __init__(self, x, y, hp=200, z_index=0):
+        super(SmallMonster, self).__init__(x, y, z_index)
         self.image = small_monster_idle_image
         self.rect = self.image.get_bounding_rect()
         self.rect.center = (x, y)
@@ -444,17 +443,15 @@ class SmallMonster(Player):
         self.self_destroy_count_down_sec = 0.10
         self.self_destroy_cur_count_down = 100
         self.name = SMALL_MONSTER
-        self.hp = 200
-        self.stuck_tick_sec = 200000000
-        self.stuck_tick_cur = 10000000
+        self.hp = hp
         self.jump = False
 
     def take_damage(self, damage):
         self.hp -= damage
 
     def update(self, *args, **kwargs):
-        dx = 0
-        dy = 0
+        self.dx = 0
+        self.dy = 0
 
         objects_with_collision = kwargs['objects_with_collision']
         scroll = kwargs['scroll']
@@ -466,16 +463,16 @@ class SmallMonster(Player):
             return
 
         if not self.self_destroy:
-            if self.speed <= abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])) <= 700 and \
-                    abs(abs(player.rect.centery + scroll[1]) - abs(self.rect.centery + scroll[1])) <= 300:
+            if self.speed <= abs(abs(player.rect.centerx) - abs(self.rect.centerx)) <= 700 and \
+                    abs(abs(player.rect.centery) - abs(self.rect.centery)) <= 300:
                 if player.rect.centerx > self.rect.centerx:
-                    dx = self.speed
+                    self.dx = self.speed
                     self.right = False
 
                 else:
-                    dx = -self.speed
+                    self.dx = -self.speed
                     self.right = True
-                if 50 <= abs(abs(player.rect.centery + scroll[1]) - abs(self.rect.centery + scroll[1])) <= 300:
+                if 50 <= abs(abs(player.rect.centery) - abs(self.rect.centery)) <= 300:
                     if player.rect.centery < self.rect.centery and not self.in_air:
                         self.jump = True
                     else:
@@ -483,8 +480,6 @@ class SmallMonster(Player):
             if abs(abs(player.rect.centerx) - abs(self.rect.centerx)) <= 30 and \
                 abs(abs(player.rect.centery) - abs(self.rect.centery)) <= 30:
                 self.self_destroy = True
-                print(abs(abs(player.rect.centerx + scroll[0]) - abs(self.rect.centerx + scroll[0])))
-                print(player.rect.x, self.rect.x)
                 self.self_destroy_cur_count_down = self.self_destroy_count_down_sec * FPS
 
             if self.jump and not self.in_air:
@@ -496,60 +491,28 @@ class SmallMonster(Player):
             self.self_destroy_cur_count_down -= 1
 
         if self.moving_left:
-            dx = -self.speed
+            self.dx = -self.speed
 
         if self.moving_right:
-            dx = self.speed
+            self.dx = self.speed
 
         if self.dash and self.dash_cur_count > 0:
             if self.moving_right:
-                dx = self.dash_speed
+                self.dx = self.dash_speed
             elif self.moving_left:
-                dx = -self.dash_speed
+                self.dx = -self.dash_speed
 
         if self.in_air:
             self.jump = False
 
         self.vel_y += GRAVITY
-        dy += self.vel_y
+        self.dy += self.vel_y
 
-        for object in objects_with_collision:
-            # check collision in the x direction
-            if abs(abs(self.rect.centerx) - abs(object.rect.centerx)) >= 100:
+        self.check_collisions(objects_with_collision)
 
-                continue
-            if object.rect.colliderect(self.rect.x + dx, self.rect.y, self.rect.width,
-                                       self.rect.height) and not object.platform:
-                dx = 0
-            # check for collision in the y direction
-            if object.rect.colliderect(self.rect.x, self.rect.y + dy, self.rect.width, self.rect.height):
-                # check if below the ground, i.e. jumping
-                if self.vel_y < 0 and not object.platform:
-                    self.vel_y = 0
-                    dy = object.rect.bottom - self.rect.top
-                # check if above the ground, i.e. falling
-                elif self.vel_y >= 0 and not object.platform:
-                    self.vel_y = 0
-                    self.in_air = False
-                    self.before_fall_x, self.before_fall_y = self.rect.center
-                    dy = object.rect.top - self.rect.bottom
-                elif self.vel_y >= 0 and object.platform and not (self.rect.bottom > object.rect.top):
-                    self.vel_y = 0
-                    self.in_air = False
-                    self.before_fall_x, self.before_fall_y = self.rect.center
-                    dy = object.rect.top - self.rect.bottom
+        self.rect.x += self.dx
+        self.rect.y += self.dy
 
-        self.rect.x += dx
-        self.rect.y += dy
-
-        if dx != 0:
-            self.is_moving = True
-            self.stuck_tick_cur == self.stuck_tick_sec * FPS
-        else:
-            self.is_moving = False
-            self.stuck_tick_cur -= 1
-            if self.stuck_tick_cur <= 0:
-                self.self_destroy = True
 
 
         if self.is_moving:
@@ -566,8 +529,8 @@ class SmallMonster(Player):
 
 
 class Projectile(Entity):
-    def __init__(self, x, y, damage, ang, move):
-        super(Projectile, self).__init__()
+    def __init__(self, x, y, damage, ang, move, z_index=0):
+        super(Projectile, self).__init__(z_index)
         self.image, self.rect,  = rot_center(blue_projectile, math.degrees(ang), x, y)
         self.move = move
         self.damage = damage
@@ -575,7 +538,7 @@ class Projectile(Entity):
         self.name = PROJECTILE
         self.collide = False
         self.tick = 0
-        self.living_time_sec = 6
+        self.living_time_sec = 2
 
     def update(self, *args, **kwargs):
         self.rect.x += self.move[0]
@@ -584,12 +547,14 @@ class Projectile(Entity):
 
         if self.tick >= self.living_time_sec * FPS:
             self.collide = True
+            return
 
         objects_with_collision = kwargs['objects_with_collision']
         for object in objects_with_collision:
             if object.rect.x <= self.rect.centerx <= object.rect.x + object.rect.width and \
                 object.rect.y <= self.rect.centery <= object.rect.y + object.rect.height:
                 self.collide = True
+                return
 
         entities = kwargs['entities']
         for entity in entities:

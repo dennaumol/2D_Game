@@ -1,6 +1,5 @@
-import pygame
+
 from entities import *
-from settings import *
 from location import *
 
 pygame.init()
@@ -8,36 +7,125 @@ pygame.init()
 true_scroll = [0, 0]
 
 
-player = Player(0, -500)
+def update_scroll():
+    global true_scroll, scroll
+
+
+def calculate_player_chunk():
+    global player
+    chunk_col = player.rect.centerx // CHUNK_WIDTH
+    chunk_row = player.rect.centery // CHUNK_HEIGHT
+    return chunk_col, chunk_row
+
+
+def sort_objects_by_z_index(objects):
+    objects.sort(key=lambda x: x.z_index)
+    return objects.copy()
+
+
+def add_object_to_chunk(object):
+    global location
+    global nearby_objects
+    chunk_col = object.rect.x // CHUNK_WIDTH
+    chunk_row = object.rect.y // CHUNK_HEIGHT
+    location.chunks[(chunk_col, chunk_row)].objects[1].append(object)
+
+
+def get_objects_around_player():
+    global nearby_objects
+    global objects_with_collision
+    global other_objects
+    global projectiles
+
+    nearby_objects.clear()
+    objects_with_collision.clear()
+    other_objects.clear()
+
+    nearby_objects.append(player)
+    chunk_col, chunk_row = calculate_player_chunk()
+    add_to_objects_with_collision, add_to_other_objects = location.get_chunk_objects(chunk_col, chunk_row)
+    objects_with_collision.extend(add_to_objects_with_collision.copy())
+    other_objects.extend(add_to_other_objects.copy())
+
+    add_to_objects_with_collision, add_to_other_objects = location.get_chunk_objects(chunk_col - 1, chunk_row)
+    objects_with_collision.extend(add_to_objects_with_collision.copy())
+    other_objects.extend(add_to_other_objects.copy())
+
+    add_to_objects_with_collision, add_to_other_objects = location.get_chunk_objects(chunk_col + 1, chunk_row)
+    objects_with_collision.extend(add_to_objects_with_collision.copy())
+    other_objects.extend(add_to_other_objects.copy())
+
+    add_to_objects_with_collision, add_to_other_objects = location.get_chunk_objects(chunk_col, chunk_row - 1)
+    objects_with_collision.extend(add_to_objects_with_collision.copy())
+    other_objects.extend(add_to_other_objects.copy())
+
+    add_to_objects_with_collision, add_to_other_objects = location.get_chunk_objects(chunk_col, chunk_row + 1)
+    objects_with_collision.extend(add_to_objects_with_collision.copy())
+    other_objects.extend(add_to_other_objects.copy())
+
+    add_to_objects_with_collision, add_to_other_objects = location.get_chunk_objects(chunk_col - 1, chunk_row - 1)
+    objects_with_collision.extend(add_to_objects_with_collision.copy())
+    other_objects.extend(add_to_other_objects.copy())
+
+    add_to_objects_with_collision, add_to_other_objects = location.get_chunk_objects(chunk_col + 1, chunk_row - 1)
+    objects_with_collision.extend(add_to_objects_with_collision.copy())
+    other_objects.extend(add_to_other_objects.copy())
+
+    add_to_objects_with_collision, add_to_other_objects = location.get_chunk_objects(chunk_col - 1, chunk_row + 1)
+    objects_with_collision.extend(add_to_objects_with_collision.copy())
+    other_objects.extend(add_to_other_objects.copy())
+
+    add_to_objects_with_collision, add_to_other_objects = location.get_chunk_objects(chunk_col + 1, chunk_row + 1)
+    objects_with_collision.extend(add_to_objects_with_collision.copy())
+    other_objects.extend(add_to_other_objects.copy())
+
+    nearby_objects.extend(other_objects.copy())
+    nearby_objects.extend(objects_with_collision.copy())
+    nearby_objects = sort_objects_by_z_index(nearby_objects)
+
+
+def calculate_object_chunk(object):
+    chunk_col = object.rect.x // CHUNK_WIDTH
+    chunk_row = object.rect.y // CHUNK_HEIGHT
+    return chunk_col, chunk_row
+
+
+
+
 clock = pygame.time.Clock()
+location = YellowDesert()
+location.generate()
+player = Player(3000, 4000)
+
+all_entities = []
+all_entities.extend(location.enemies)
 
 
-location = YellowDesert(0, 0)
-objects_with_collision, front, behind = location.generate()
-all_objects = []
+nearby_objects = []
+objects_with_collision = []
+nearby_entities = []
+other_objects = []
+dead = []
 
-enemies = location.enemies
-
-
-all_objects.extend(behind)
-all_objects.extend(objects_with_collision)
-all_objects.append(player)
-all_objects.extend(enemies)
-all_objects.extend(front)
-existing_entities = []
+true_scroll[0] += (player.rect.x - true_scroll[0] - (SCREEN_WIDTH // 2 - player.rect.width // 2))
+true_scroll[1] += (player.rect.y - true_scroll[1] - (SCREEN_HEIGHT // 2 - player.rect.height // 2))
 
 main_game_loop = True
+
 while main_game_loop:
 
+    dead = []
+    get_objects_around_player()
 
-    true_scroll[0] += (player.rect.x - true_scroll[0] - (SCREEN_WIDTH // 2 - player.rect.width // 2)) / 10
-    true_scroll[1] += (player.rect.y - true_scroll[1] - (SCREEN_HEIGHT // 2 - player.rect.height // 2)) / 10
+    true_scroll[0] += (player.rect.x - true_scroll[0] - (SCREEN_WIDTH // 2 - player.rect.width // 2)) / 15
+    true_scroll[1] += (player.rect.y - true_scroll[1] - (SCREEN_HEIGHT // 2 - player.rect.height // 2)) / 15
 
     scroll = true_scroll.copy()
     scroll[0] = int(scroll[0])
     scroll[1] = int(scroll[1])
 
     for event in pygame.event.get():
+
         if event.type == pygame.QUIT:
             main_game_loop = False
         if event.type == pygame.KEYDOWN:
@@ -53,7 +141,7 @@ while main_game_loop:
 
     if player.shooting and player.shooting_tick_cur <= 0:
         projectile = player.shot(scroll)
-        all_objects.insert(0, projectile)
+        add_object_to_chunk(projectile)
         player.shooting_tick_cur = player.shooting_tick
 
     keys = pygame.key.get_pressed()
@@ -74,36 +162,45 @@ while main_game_loop:
         player.is_moving = False
     SCREEN.fill((247, 101, 101))
 
-    for object in all_objects:
-        if abs(abs(player.rect.centerx) - abs(object.rect.centerx)) >= SCREEN_WIDTH // 1.7:
-            continue
+    for object in nearby_objects:
+        chunk_col, chunk_row = calculate_object_chunk(object)
+        if object.name != PLAYER:
+            if object not in objects_with_collision:
+                location.chunks[(chunk_col, chunk_row)].objects[1].remove(object)
+            else:
+                location.chunks[(chunk_col, chunk_row)].objects[0].remove(object)
         if object.name == EXPLOSION:
-            object.update(entities=existing_entities)
+            object.update(entities=nearby_entities)
             if object.end:
-                all_objects.remove(object)
+                dead.append(object)
         if object.type == ENTITY:
-            if object.rect.y > location.bottom or object.hp <= 0:
-                all_objects.remove(object)
-                existing_entities.remove(object)
-
-                continue
-            if object.rect.y <= location.bottom and object.hp > 0:
-                if object not in existing_entities:
-                    existing_entities.append(object)
+            if object.rect.y > location.dead_bottom or object.hp <= 0:
+                pass
+            if object.rect.y <= location.dead_bottom and object.hp > 0:
+                if object not in nearby_entities:
+                    nearby_entities.append(object)
             if object.name == SMALL_MONSTER:
                 if object.self_destroy_cur_count_down < 0 and object.self_destroy:
-                    print('Boom')
-                    all_objects.append(Explosion(object.rect.centerx, object.rect.centery))
-                    all_objects.remove(object)
-                    existing_entities.remove(object)
+                    explosion = Explosion(object.rect.centerx, object.rect.top)
+                    add_object_to_chunk(explosion)
+                    dead.append(object)
             object.update(scroll=scroll, objects_with_collision=objects_with_collision, player=player,
-                          y_dead_bottom=location.bottom)
+                          y_dead_bottom=location.dead_bottom)
         if object.name == PROJECTILE:
-            object.update(objects_with_collision=objects_with_collision, entities=existing_entities)
+            object.update(objects_with_collision=objects_with_collision, entities=nearby_entities)
             if object.collide:
-                all_objects.remove(object)
+                dead.append(object)
+        chunk_col, chunk_row = calculate_object_chunk(object)
+        if object.name != PLAYER:
+            if object not in objects_with_collision:
+                location.chunks[(chunk_col, chunk_row)].objects[1].append(object)
+            else:
+                location.chunks[(chunk_col, chunk_row)].objects[0].append(object)
         object.draw(SCREEN, scroll)
+    for object in dead:
+        nearby_objects.remove(object)
 
+    dead.clear()
 
     pygame.display.flip()
     clock.tick(FPS)

@@ -642,6 +642,6 @@ for i in range(12):
 
 image = pygame.image.load(f'data/images/projectiles/blue/90.gif')
 blue_projectile = pygame.transform.scale(image,
-                                   (int(image.get_width() * 1.2), int(image.get_height() * 1.2))).convert_alpha(
+                                   (int(image.get_width() * 1.4), int(image.get_height() * 1.4))).convert_alpha(
         SCREEN)
 
