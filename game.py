@@ -144,7 +144,7 @@ while main_game_loop:
     scroll[1] = int(scroll[1])
 
     for event in pygame.event.get():
-
+        print(clock.get_fps())
         if event.type == pygame.QUIT:
             main_game_loop = False
         if event.type == pygame.KEYDOWN:
@@ -182,6 +182,7 @@ while main_game_loop:
     SCREEN.fill((247, 101, 101))
 
     for object in nearby_objects:
+
         if object.name != LEVEL_OBJECT:
             chunk_col, chunk_row = calculate_object_chunk(object)
             if object.type == ENTITY:
@@ -196,12 +197,12 @@ while main_game_loop:
                 dead.append(object)
         if object.type == ENTITY:
 
-            if object.name == SMALL_MONSTER and object.hp > 0:
-                if object.self_destroy_cur_count_down < 0 and object.self_destroy:
+            if object.name == SMALL_MONSTER:
+                if (object.self_destroy_cur_count_down <= 0 and object.self_destroy) or object.hp <= 0:
                     explosion = Explosion(object.rect.centerx, object.rect.top)
                     add_object_to_chunk(explosion)
                     dead.append(object)
-            if object.hp <= 0:
+            elif object.hp <= 0:
                 dead.append(object)
 
             object.update(scroll=scroll, objects_with_collision=objects_with_collision, player=player,

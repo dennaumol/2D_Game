@@ -1,4 +1,5 @@
 import math
+import random
 
 from misc import *
 from random import *
@@ -463,6 +464,8 @@ class SmallMonster(Player):
                 else:
                     self.dx = -self.speed
                     self.right = True
+                if randint(0, 5) == 0:
+                    self.jump = True
                 if 50 <= abs(abs(player.rect.centery) - abs(self.rect.centery)) <= 300:
                     if player.rect.centery < self.rect.centery and not self.in_air:
                         self.jump = True
@@ -474,7 +477,7 @@ class SmallMonster(Player):
                 self.self_destroy_cur_count_down = self.self_destroy_count_down_sec * FPS
 
             if self.jump and not self.in_air:
-                self.vel_y = -20
+                self.vel_y = randint(-25, -15)
                 self.jump = False
                 self.in_air = True
 
@@ -504,6 +507,11 @@ class SmallMonster(Player):
         self.rect.x += self.dx
         self.rect.y += self.dy
 
+        if self.dx != 0:
+            self.is_moving = True
+        else:
+            self.is_moving = False
+
         if self.is_moving:
             self.image = small_monster_walk_images[self.animation_tick // 10]
         if not self.is_moving:
@@ -512,7 +520,7 @@ class SmallMonster(Player):
         if not self.right:
             self.image = pygame.transform.flip(self.image, True, False)
 
-        self.animation_tick += 1
+        self.animation_tick += 3
         if self.animation_tick >= 61:
             self.animation_tick = 0
 

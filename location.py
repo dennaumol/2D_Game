@@ -57,7 +57,7 @@ class YellowDesert(Location):
         if self.cur_sand_variation > 3:
             self.cur_sand_variation = 0
         self.y += sand_block_size
-        for i in range(10):
+        for i in range(4):
             self.all_location_objects.append(Tile(self.x, self.y, sand_block_image, collision=False, z_index=-1))
             self.y += sand_block_size
         for i in range(3):
