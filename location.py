@@ -5,8 +5,8 @@ import pygame
 from tiles import *
 from random import *
 from backgrounds import *
-from entities import SmallMonster
 from chunks import *
+from entities import Explosive
 
 
 class Border:
@@ -68,8 +68,8 @@ class YellowDesert(Location):
     def generate(self):
         length = 1250
         for i in range(length):
-            if randint(0, 10) == 0:
-                self.all_location_objects.append(SmallMonster(self.x, self.y - 100))
+            if randint(0, 6) == 0 and i >= 50:
+                self.all_location_objects.append(Explosive(self.x, self.y - 100))
             top_sand = self.generate_sand_column()
             self.x, self.y = top_sand.rect.x + sand_block_size, top_sand.rect.y
         self.all_location_objects.extend(self.objects_with_collision)

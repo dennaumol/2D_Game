@@ -39,7 +39,6 @@ class Explosion:
         surface.blit(self.image, image_rect)
 
 
-
 class Spark:
     def __init__(self, loc, angle, speed, color, scale=1):
         self.loc = loc
@@ -49,7 +48,7 @@ class Spark:
         self.color = color
         self.alive = True
         self.type = MISC
-        self.z_index = 100
+        self.z_index = 99
         self.name = SPARK
         self.type = MISC
         self.rect = pygame.Rect(self.loc[0], self.loc[1], 1, 1)
@@ -86,7 +85,7 @@ class Spark:
     
 
         # a bunch of options to mess around with relating to angles...
-        #self.point_towards(math.pi / 2, 0.02)
+        self.point_towards(math.pi / 2, 0.02)
         #self.velocity_adjust(0.975, 0.2, 8, dt)
         #self.angle += 0.1
 

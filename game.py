@@ -2,12 +2,16 @@
 from entities import *
 from location import *
 from interface import *
-import random
+from random import *
+from math import *
+
 
 pygame.init()
 
 true_scroll = [0, 0]
 
+pygame.mixer.music.load('data/sounds/music/Infraction-Sport-Beat-pr.mp3')
+pygame.mixer.music.play()
 
 def update_scroll():
     global true_scroll, scroll
@@ -144,7 +148,7 @@ while main_game_loop:
     dead = []
     get_objects_around_player()
     true_scroll[0] += (player.rect.x - true_scroll[0] - (SCREEN_WIDTH / 2 - player.rect.width / 2)) / 15
-    true_scroll[1] += (player.rect.y - true_scroll[1] - (SCREEN_HEIGHT - player.rect.height * 3)) / 15
+    true_scroll[1] += (player.rect.y - true_scroll[1] - (SCREEN_HEIGHT / 2 - player.rect.height / 2)) / 15
 
     scroll = true_scroll.copy()
     scroll[0] = int(scroll[0])
@@ -165,10 +169,12 @@ while main_game_loop:
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             player.shooting = False
 
-    if player.shooting and player.shooting_tick_cur <= 0:
+    if player.shooting and player.shooting_tick_cur <= 0 and player.hp > 0:
         projectile = player.shot(scroll)
         add_object_to_chunk(projectile)
         player.shooting_tick_cur = player.shooting_tick
+        scroll[0] += choice([-12, 12])
+        scroll[1] += -12
 
     keys = pygame.key.get_pressed()
 
@@ -203,21 +209,35 @@ while main_game_loop:
                 location.chunks[(chunk_col, chunk_row)].objects[0].remove(object)
         if object.name == SPARK:
             object.update()
-            if not spark.alive:
-                dead.append(spark)
+            if not object.alive:
+                dead.append(object)
         if object.name == EXPLOSION:
+            if object.tick == 0:
+                for _ in range(10):
+                    spark = Spark(list(object.rect.center), radians(randint(0, 360)), randint(9, 12), (255, 255, 255), 2)
+                    add_object_to_chunk(spark)
+                    scroll[0] += choice([-500, 500])
+                    scroll[1] += choice([-500, 500])
             object.update(entities=nearby_entities + [player])
             if object.end:
                 dead.append(object)
         if object.type == ENTITY:
-
-            if object.name == SMALL_MONSTER:
+            if object.name == EXPLOSIVE:
                 if (object.self_destroy_cur_count_down <= 0 and object.self_destroy) or object.hp <= 0:
                     explosion = Explosion(object.rect.centerx, object.rect.top)
                     add_object_to_chunk(explosion)
                     dead.append(object)
             elif object.hp <= 0:
-                dead.append(object)
+                if object.name == PLAYER:
+                    for i in range(5):
+                        spark = Spark(list(object.rect.center), radians(randint(0, 360)), randint(3, 6),
+                                      (255, 0, 0), 2)
+                        add_object_to_chunk(spark)
+                    if object.can_be_deleted:
+                        dead.append(object)
+                else:
+                    dead.append(object)
+
 
             object.update(scroll=scroll, objects_with_collision=objects_with_collision, player=player,
                           y_dead_bottom=location.dead_bottom)
@@ -225,8 +245,8 @@ while main_game_loop:
             object.update(objects_with_collision=objects_with_collision, entities=nearby_entities)
             if object.collide:
                 dead.append(object)
-                for _ in range(10):
-                    spark = Spark(list(object.rect.center), math.radians(random.randint(0, 360)), random.randint(3, 6), (255, 255, 255), 2)
+                for _ in range(3):
+                    spark = Spark(list(object.rect.center), radians(randint(0, 360)), randint(3, 6), (255, 255, 255), 2)
                     add_object_to_chunk(spark)
         if object.name != LEVEL_OBJECT:
             chunk_col, chunk_row = calculate_object_chunk(object)
@@ -237,12 +257,12 @@ while main_game_loop:
             else:
                 location.chunks[(chunk_col, chunk_row)].objects[0].append(object)
         object.draw(SCREEN, scroll)
+
     for object in dead:
         chunk_col, chunk_row = calculate_object_chunk(object)
         if object.type == ENTITY:
             location.chunks[(chunk_col, chunk_row)].objects[2].remove(object)
         elif object not in objects_with_collision:
-            print(object.name)
             location.chunks[(chunk_col, chunk_row)].objects[1].remove(object)
         else:
             location.chunks[(chunk_col, chunk_row)].objects[0].remove(object)

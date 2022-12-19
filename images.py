@@ -610,16 +610,16 @@ for i in range(4):
     image = pygame.transform.scale(image, (int(image.get_width() * SCALE), int(image.get_height() * SCALE))).convert_alpha(SCREEN)
     player_run_175_bk.append(image)
 
-image = pygame.image.load('data/images/small_monster/idle/0.png')
-small_monster_idle_image = pygame.transform.scale(image,
+image = pygame.image.load('data/images/explosive/idle/0.png')
+explosive_idle_image = pygame.transform.scale(image,
                                                   (int(image.get_width() * SCALE), int(image.get_height() * SCALE))).convert_alpha(SCREEN)
 
-small_monster_walk_images = []
+explosive_walk_images = []
 for i in range(7):
-    image = pygame.image.load(f'data/images/small_monster/walk/{i}.png')
+    image = pygame.image.load(f'data/images/explosive/walk/{i}.png')
     image = pygame.transform.scale(image,
                                                   (int(image.get_width() * SCALE), int(image.get_height() * SCALE))).convert_alpha(SCREEN)
-    small_monster_walk_images.append(image)
+    explosive_walk_images.append(image)
 
 desert_background_images = []
 for i in range(3):
