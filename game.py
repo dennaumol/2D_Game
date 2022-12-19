@@ -1,6 +1,8 @@
 
 from entities import *
 from location import *
+from interface import *
+import random
 
 pygame.init()
 
@@ -132,7 +134,12 @@ add_object_to_chunk(player)
 
 main_game_loop = True
 
+healthbar = HeathBar()
+
+
+
 while main_game_loop:
+    
 
     dead = []
     get_objects_around_player()
@@ -144,7 +151,7 @@ while main_game_loop:
     scroll[1] = int(scroll[1])
 
     for event in pygame.event.get():
-        print(clock.get_fps())
+        
         if event.type == pygame.QUIT:
             main_game_loop = False
         if event.type == pygame.KEYDOWN:
@@ -179,10 +186,13 @@ while main_game_loop:
         player.moving_right = False
     if not keys[pygame.K_a] and not keys[pygame.K_d]:
         player.is_moving = False
+
     SCREEN.fill((247, 101, 101))
 
-    for object in nearby_objects:
+    healthbar.update(player)
+    healthbar.draw(SCREEN)
 
+    for object in nearby_objects:
         if object.name != LEVEL_OBJECT:
             chunk_col, chunk_row = calculate_object_chunk(object)
             if object.type == ENTITY:
@@ -191,6 +201,10 @@ while main_game_loop:
                 location.chunks[(chunk_col, chunk_row)].objects[1].remove(object)
             else:
                 location.chunks[(chunk_col, chunk_row)].objects[0].remove(object)
+        if object.name == SPARK:
+            object.update()
+            if not spark.alive:
+                dead.append(spark)
         if object.name == EXPLOSION:
             object.update(entities=nearby_entities + [player])
             if object.end:
@@ -211,6 +225,9 @@ while main_game_loop:
             object.update(objects_with_collision=objects_with_collision, entities=nearby_entities)
             if object.collide:
                 dead.append(object)
+                for _ in range(10):
+                    spark = Spark(list(object.rect.center), math.radians(random.randint(0, 360)), random.randint(3, 6), (255, 255, 255), 2)
+                    add_object_to_chunk(spark)
         if object.name != LEVEL_OBJECT:
             chunk_col, chunk_row = calculate_object_chunk(object)
             if object.type == ENTITY:
@@ -225,6 +242,7 @@ while main_game_loop:
         if object.type == ENTITY:
             location.chunks[(chunk_col, chunk_row)].objects[2].remove(object)
         elif object not in objects_with_collision:
+            print(object.name)
             location.chunks[(chunk_col, chunk_row)].objects[1].remove(object)
         else:
             location.chunks[(chunk_col, chunk_row)].objects[0].remove(object)

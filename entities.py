@@ -18,6 +18,7 @@ class Entity(pygame.sprite.Sprite):
         self.platform = False
         self.type = ENTITY
         self.hp = 100
+        self.max_hp = 10000
         self.dx = 0
         self.dy = 0
         self.z_index = z_index
@@ -77,6 +78,7 @@ class Player(Entity):
         self.extra_cur_jumps = 1
         self.before_fall_x, self.before_fall_y = self.rect.center
         self.hp = 500
+        self.max_hp = 500
         self.name = PLAYER
 
     def shot(self, scroll):
